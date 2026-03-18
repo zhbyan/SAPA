@@ -1,0 +1,14 @@
+wheel
+setuptools
+fastapi
+uvicorn
+pandas
+numpy
+scikit-learn
+python-multipart
+google-generativeai
+python-dotenv
+# AI/NLP Libraries
+torch
+transformers
+tqdm

@@ -1,0 +1,46 @@
+# Python
+venv/
+__pycache__/
+*.pyc
+.env
+
+# Node.js
+node_modules/
+dist/
+.angular/
+
+# OS files
+.DS_Store
+Thumbs.db
+
+# Large ML model files (too big for GitHub)
+*.pkl
+*.npy
+*.h5
+*.pt
+*.pth
+*.onnx
+
+# Large dataset files (generated — can be recreated via data_manager.py)
+data/augmented_dataset.csv
+data/hybrid_dataset.csv
+data/kaggle_translated.csv
+data/train.csv
+data/val.csv
+data/test.csv
+data/bert_cache_*.npy
+data/sapa_model.pkl
+data/knowledge_base.pkl
+
+# Keep kaggle_raw and kaggle_dataset.csv (source data)
+# !data/kaggle_raw/
+# !data/kaggle_dataset.csv
+
+# IDE
+.vscode/
+.idea/
+
+# Misc
+*.log
+extraction_output*.txt
+rf_solution_output.txt

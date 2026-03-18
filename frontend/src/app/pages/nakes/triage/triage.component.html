@@ -1,0 +1,270 @@
+<!-- Triage Page — converted from React TriagePage.jsx Tailwind classes -->
+<div class="animate-fadeIn">
+  <!-- Tab Navigation -->
+  <div class="flex border-b border-gray-200 mb-6">
+    <button *ngFor="let tab of tabs; let i = index" (click)="activeTab = i"
+      [class]="'flex-1 py-3 text-sm font-semibold text-center transition-all relative ' + (activeTab === i ? 'text-primary' : 'text-gray-400 hover:text-gray-600')">
+      {{ tab }}
+      <span *ngIf="activeTab === i" class="absolute bottom-0 left-0 right-0 h-[3px] bg-primary rounded-t-full"></span>
+    </button>
+  </div>
+
+  <!-- ═══ TAB 1: Data Pasien ═══ -->
+  <div *ngIf="activeTab === 0" class="bg-white rounded-2xl border border-gray-200 p-6 animate-slideUp">
+    <!-- Row 1 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div>
+        <label [class]="'block text-xs font-medium mb-1.5 ' + (validationErrors['nik'] ? 'text-red-500' : 'text-gray-500')">
+          Nomor Induk Keluarga <span *ngIf="validationErrors['nik']" class="text-red-400">*</span>
+        </label>
+        <input type="text" [(ngModel)]="patientData['nik']"
+          [class]="'w-full px-3 py-2.5 border rounded-xl text-sm focus:ring-2 outline-none transition-all ' + (validationErrors['nik'] ? 'border-red-300 focus:ring-red-200 bg-red-50/30' : 'border-gray-200 focus:ring-primary/20 focus:border-primary')" />
+      </div>
+      <div>
+        <label [class]="'block text-xs font-medium mb-1.5 ' + (validationErrors['namaLengkap'] ? 'text-red-500' : 'text-gray-500')">
+          Nama Lengkap <span *ngIf="validationErrors['namaLengkap']" class="text-red-400">*</span>
+        </label>
+        <input type="text" [(ngModel)]="patientData['namaLengkap']"
+          [class]="'w-full px-3 py-2.5 border rounded-xl text-sm focus:ring-2 outline-none transition-all ' + (validationErrors['namaLengkap'] ? 'border-red-300 focus:ring-red-200 bg-red-50/30' : 'border-gray-200 focus:ring-primary/20 focus:border-primary')" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Jenis Kelamin</label>
+        <select [(ngModel)]="patientData['jenisKelamin']"
+          [class]="'w-full px-3 py-2.5 border rounded-xl text-sm focus:ring-2 outline-none bg-white ' + (validationErrors['jenisKelamin'] ? 'border-red-300 focus:ring-red-200 bg-red-50/30' : 'border-gray-200 focus:ring-primary/20 focus:border-primary')">
+          <option value="">-</option><option value="L">Laki-Laki</option><option value="P">Perempuan</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Row 2 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div class="md:col-span-2">
+        <label [class]="'block text-xs font-medium mb-1.5 ' + (validationErrors['alamat'] ? 'text-red-500' : 'text-gray-500')">Alamat</label>
+        <input type="text" [(ngModel)]="patientData['alamat']" [class]="'w-full px-3 py-2.5 border rounded-xl text-sm focus:ring-2 outline-none transition-all ' + (validationErrors['alamat'] ? 'border-red-300 focus:ring-red-200 bg-red-50/30' : 'border-gray-200 focus:ring-primary/20 focus:border-primary')" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Kelurahan</label>
+        <input type="text" [(ngModel)]="patientData['kelurahan']" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+      </div>
+    </div>
+
+    <!-- Row 3 -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
+      <div *ngFor="let f of [['kecamatan','Kecamatan'],['kabupaten','Kabupaten/Kota'],['provinsi','Provinsi'],['kodePos','Kode Pos']]">
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">{{ f[1] }}</label>
+        <input type="text" [(ngModel)]="patientData[f[0]]" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+      </div>
+    </div>
+
+    <!-- Row 4 -->
+    <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Nomor Handphone Aktif</label>
+        <input type="text" [(ngModel)]="patientData['noHP']" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+      </div>
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Nomor BPJS</label>
+        <input type="text" [(ngModel)]="patientData['noBPJS']" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" />
+      </div>
+    </div>
+
+    <!-- Row 5: Vitals -->
+    <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
+      <div *ngFor="let v of [['beratBadan','Berat Badan','kg'],['tinggiBadan','Tinggi Badan','cm'],['suhuBadan','Suhu Badan','°C'],['tekananDarah','Tekanan Darah','mmHg'],['usia','Usia','tahun']]">
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">{{ v[1] }}</label>
+        <div class="relative">
+          <input type="text" [(ngModel)]="patientData[v[0]]" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all pr-12" />
+          <span class="absolute right-3 top-1/2 -translate-y-1/2 text-xs text-gray-400">{{ v[2] }}</span>
+        </div>
+      </div>
+    </div>
+
+    <div class="flex justify-end">
+      <button (click)="nextTab()" class="bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-8 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+        Selanjutnya <lucide-icon name="chevron-right" [size]="16"></lucide-icon>
+      </button>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 2: Isi Keluhan (Chat) ═══ -->
+  <div *ngIf="activeTab === 1" class="animate-slideUp">
+    <!-- Info Bar + Progress -->
+    <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-4">
+          <span class="text-2xl font-bold text-primary tracking-tight">SAPA</span>
+          <div>
+            <p class="font-semibold text-gray-800">{{ patientData['namaLengkap'] || 'Pasien' }}</p>
+            <p class="text-xs text-gray-400">{{ getNikMasked() }}</p>
+          </div>
+        </div>
+        <button (click)="generateReport()"
+          [disabled]="!fieldStatus || fieldStatus.percentage < 100"
+          [class]="'font-semibold py-2 px-5 rounded-xl flex items-center gap-2 transition-all text-sm ' +
+            (fieldStatus && fieldStatus.percentage >= 100
+              ? 'bg-primary hover:bg-primary-dark text-white shadow-lg shadow-primary/20'
+              : 'bg-gray-200 text-gray-400 cursor-not-allowed')">
+          📄 Buat Laporan
+        </button>
+      </div>
+
+      <!-- Progress -->
+      <div *ngIf="fieldStatus" class="mt-3 pt-3 border-t border-gray-100">
+        <div class="flex items-center justify-between mb-1.5">
+          <span class="text-xs font-semibold text-gray-500">Data Anamnesis: {{ fieldStatus.progress || '0/7' }}</span>
+          <span [class]="'text-xs font-bold ' + (fieldStatus.percentage >= 100 ? 'text-primary' : 'text-amber-500')">{{ fieldStatus.percentage || 0 }}%</span>
+        </div>
+        <div class="w-full h-2 bg-gray-100 rounded-full overflow-hidden">
+          <div [class]="'h-full rounded-full transition-all duration-500 ' + (fieldStatus.percentage >= 100 ? 'bg-primary' : 'bg-amber-400')"
+            [style.width.%]="fieldStatus.percentage || 0"></div>
+        </div>
+        <div class="flex flex-wrap gap-2 mt-2">
+          <span *ngFor="let entry of getFieldEntries()"
+            [class]="'text-[10px] px-2 py-0.5 rounded-full ' + (entry[1] ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400')">
+            <lucide-icon *ngIf="entry[1]" name="check" [size]="14" class="text-green-500"></lucide-icon><span *ngIf="!entry[1]" class="w-3.5 h-3.5 border border-slate-300 rounded"></span> {{ entry[0].replace('_', ' ') }}
+          </span>
+        </div>
+        <div *ngIf="fieldStatus.percentage >= 100" class="mt-2 bg-primary/10 border border-primary/20 rounded-lg px-3 py-1.5 text-xs text-primary font-medium flex items-center gap-2">
+          <lucide-icon name="check" [size]="14" class="text-green-500"></lucide-icon> Semua data anamnesis lengkap! Silakan klik "Buat Laporan".
+        </div>
+      </div>
+    </div>
+
+    <!-- Chat Area -->
+    <div class="bg-gradient-to-b from-green-50/50 to-white rounded-2xl border border-gray-200 flex flex-col" style="height: calc(100vh - 300px)">
+      <div class="flex-1 overflow-y-auto p-6 space-y-4">
+        <div *ngIf="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center">
+          <h2 class="text-3xl font-bold text-primary mb-2">Halo, {{ getFirstName() }}</h2>
+          <p class="text-gray-400">Silakan masukkan keluhan utama pasien</p>
+        </div>
+        <div *ngFor="let msg of messages" [class]="'flex animate-fadeIn ' + (msg.role === 'user' ? 'justify-end' : 'justify-start')">
+          <div *ngIf="msg.role === 'ai'" class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold mr-3 mt-1 flex-shrink-0">SP</div>
+          <div [class]="'max-w-[70%] px-4 py-3 shadow-sm ' + (msg.role === 'user' ? 'chat-bubble-user' : 'chat-bubble-ai')">
+            <p class="text-sm text-gray-800 whitespace-pre-line">{{ msg.text }}</p>
+            <p class="text-[10px] text-gray-400 mt-1.5 text-right">{{ msg.time }}</p>
+          </div>
+        </div>
+        <div *ngIf="isSending" class="flex justify-start animate-fadeIn">
+          <div class="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary text-xs font-bold mr-3 mt-1">SP</div>
+          <div class="chat-bubble-ai px-4 py-3">
+            <div class="flex gap-1">
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 0ms"></span>
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 150ms"></span>
+              <span class="w-2 h-2 bg-gray-400 rounded-full animate-bounce" style="animation-delay: 300ms"></span>
+            </div>
+          </div>
+        </div>
+        <div #chatEnd></div>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="p-4 border-t border-gray-100">
+        <div class="flex items-center gap-3 bg-white border border-gray-200 rounded-full px-4 py-1 shadow-sm">
+          <input type="text" [(ngModel)]="chatInput" (keydown)="onKeyPress($event)" placeholder="Message RASA..."
+            class="flex-1 py-2 text-sm outline-none bg-transparent placeholder-gray-400" />
+          <button (click)="sendMessage()" [disabled]="!chatInput.trim() || isSending"
+            class="w-9 h-9 rounded-full bg-primary hover:bg-primary-dark text-white flex items-center justify-center transition-all disabled:opacity-30 disabled:cursor-not-allowed">
+            <lucide-icon name="send" [size]="18"></lucide-icon>
+          </button>
+        </div>
+        <p class="text-center text-[10px] text-gray-400 mt-2">RASA can make mistakes. Check our Terms & Conditions.</p>
+      </div>
+    </div>
+  </div>
+
+  <!-- ═══ TAB 3: Ringkasan Pasien ═══ -->
+  <div *ngIf="activeTab === 2" class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slideUp">
+    <!-- Left -->
+    <div class="lg:col-span-2 space-y-6">
+      <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-lg font-bold text-gray-800">DATA PASIEN</h3>
+          <button class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors"><lucide-icon name="edit" [size]="14"></lucide-icon> Edit</button>
+        </div>
+
+        <!-- Vital Badges -->
+        <div class="flex flex-wrap gap-3 mb-5">
+          <span *ngIf="patientData['tekananDarah']" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">TD: {{ patientData['tekananDarah'] }} mmHg</span>
+          <span *ngIf="patientData['suhuBadan']" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">Suhu: {{ patientData['suhuBadan'] }}°C</span>
+          <span *ngIf="patientData['tinggiBadan']" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">📏 TB: {{ patientData['tinggiBadan'] }} cm</span>
+          <span *ngIf="patientData['beratBadan']" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">BB: {{ patientData['beratBadan'] }} kg</span>
+        </div>
+
+        <!-- Resume Medis -->
+        <div class="mb-5">
+          <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"><lucide-icon name="file-text" [size]="16" class="text-primary"></lucide-icon> Resume Medis (ICD 10)</h4>
+          <p class="text-sm text-gray-600 leading-relaxed">{{ summary?.resumeMedis || 'Belum ada data resume.' }}</p>
+        </div>
+
+        <!-- ICD Tags -->
+        <div *ngIf="summary?.icdTags" class="flex flex-wrap gap-2 mb-6">
+          <span *ngFor="let tag of summary.icdTags" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-full">{{ tag.code }} – {{ tag.label }}</span>
+        </div>
+
+        <!-- Diagnosis Awal -->
+        <div *ngIf="summary?.diagnoses">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"><lucide-icon name="search" [size]="16" class="text-primary"></lucide-icon> Diagnosis Awal</h4>
+          <div class="space-y-2">
+            <div *ngFor="let dx of summary.diagnoses; let i = index" [class]="'flex items-center justify-between py-3 px-4 rounded-xl ' + (i === 0 ? 'bg-gray-50 border border-gray-200' : '')">
+              <div>
+                <span class="text-sm font-medium text-gray-800">{{ i + 1 }}. {{ dx.name }}</span>
+                <span class="text-xs text-gray-400 ml-2">ICD-10: {{ dx.icd }}</span>
+              </div>
+              <span [class]="'text-sm font-bold ' + (dx.score >= 60 ? 'text-primary' : dx.score >= 30 ? 'text-amber-500' : 'text-gray-400')">{{ dx.score }}%</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Penempatan -->
+        <div class="mt-6 pt-6 border-t border-gray-100">
+          <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"><lucide-icon name="file-check" [size]="16" class="text-primary"></lucide-icon> Penempatan Pasien & Tujuan</h4>
+          <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">Pilih Poliklinik Tujuan</label>
+              <select class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none"><option>-</option><option>Poli Umum</option><option>Poli Penyakit Dalam</option><option>Poli Saraf</option></select>
+            </div>
+            <div>
+              <label class="block text-xs text-gray-500 mb-1">Pilih Dokter</label>
+              <select class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm outline-none"><option>-</option><option>dr. Supraptono, Sp.B</option><option>dr. Ahmad Fauzi, Sp.PD</option><option>dr. Siti Nurhaliza, Sp.S</option></select>
+            </div>
+          </div>
+        </div>
+
+        <div class="mt-8 flex justify-end">
+          <div *ngIf="!summary?.diagnoses || summary.diagnoses.length === 0" class="flex flex-col items-end">
+            <p class="text-xs text-red-500 font-medium mb-2 flex items-center gap-1"><lucide-icon name="alert-circle" [size]="14"></lucide-icon> Prediksi AI gagal/kosong. Silakan kembali ke tab "Isi Keluhan" dan buat laporan ulang.</p>
+            <button disabled class="bg-gray-200 text-gray-400 font-semibold py-3 px-8 rounded-xl flex items-center gap-2 cursor-not-allowed"><lucide-icon name="send" [size]="16"></lucide-icon> Kirim ke Dokter</button>
+          </div>
+          <button *ngIf="summary?.diagnoses && summary.diagnoses.length > 0" (click)="sendToDoctor()"
+            class="bg-primary hover:bg-primary-dark text-white font-semibold py-3 px-8 rounded-xl flex items-center gap-2 transition-all shadow-lg shadow-primary/20">
+            <lucide-icon name="send" [size]="16"></lucide-icon> Kirim ke Dokter
+          </button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Right: Profil -->
+    <div class="space-y-6">
+      <div class="bg-white rounded-2xl border border-gray-200 p-6">
+        <div class="flex items-center justify-between mb-4">
+          <h3 class="text-sm font-semibold text-gray-700">Profil Pasien</h3>
+          <button class="flex items-center gap-1 text-xs text-gray-500 hover:text-gray-700 border border-gray-200 px-2 py-1 rounded-lg transition-colors"><lucide-icon name="edit" [size]="12"></lucide-icon> Edit</button>
+        </div>
+        <div class="flex flex-col items-center mb-5">
+          <div class="w-20 h-20 rounded-full bg-gray-100 flex items-center justify-center mb-3 text-4xl">👤</div>
+          <p class="font-bold text-gray-800">{{ patientData['namaLengkap'] || '—' }}</p>
+          <p class="text-xs text-gray-400">Nomor Pasien: #{{ getPatientNumber() }}</p>
+        </div>
+        <div class="space-y-3 text-sm">
+          <div><p class="text-xs text-gray-400 mb-0.5">Tanggal Pendaftaran</p><p class="font-medium text-gray-800">{{ getRegistrationDate() }}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Nomor Kartu Keluarga</p><p class="font-medium text-gray-800">{{ patientData['nik'] || '—' }}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Nomor BPJS</p><p class="font-medium text-gray-800">{{ patientData['noBPJS'] || '—' }}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Jenis Kelamin</p><p class="font-medium text-gray-800">{{ getGenderLabel() }}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Usia</p><p class="font-medium text-gray-800">{{ patientData['usia'] ? patientData['usia'] + ' tahun' : '—' }}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Alamat</p><p class="font-medium text-gray-800">{{ getAddressLabel() }}</p></div>
+          <div><p class="text-xs text-gray-400 mb-0.5">Nomor Handphone</p><p class="font-medium text-gray-800">{{ patientData['noHP'] || '—' }}</p></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

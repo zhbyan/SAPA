@@ -1,0 +1,357 @@
+<!-- Patient Examination — from React PatientExamination.jsx Tailwind classes -->
+<div *ngIf="!patient" class="flex justify-center items-center h-[calc(100vh-64px)]">
+  <p class="text-slate-500">Memuat data pasien...</p>
+</div>
+
+<div *ngIf="patient" class="h-[calc(100vh-64px)] flex flex-col p-6 bg-slate-50 overflow-y-auto">
+  <!-- Patient Info Header -->
+  <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-wrap items-center justify-between gap-6 mb-6">
+    <div class="flex items-center gap-4">
+      <div class="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center text-lg font-bold font-mono">{{ patient.id?.toString().slice(-2) }}</div>
+      <div>
+        <h1 class="text-2xl font-bold text-slate-800">{{ patient.name }}</h1>
+        <p class="text-sm text-slate-500">Nomor Pasien: #{{ patient.id?.toString().slice(-6) }}</p>
+      </div>
+    </div>
+    <div class="flex gap-8 text-sm">
+      <div class="border-r border-slate-200 pr-8">
+        <p class="text-slate-400 mb-1">Info</p>
+        <p class="font-semibold text-slate-700">{{ patient.patientData?.usia ? patient.patientData.usia + ' Tahun' : '—' }}</p>
+      </div>
+      <div class="border-r border-slate-200 pr-8">
+        <p class="text-slate-400 mb-1">Nomor Telefon</p>
+        <p class="font-semibold text-slate-700">{{ patient.patientData?.noHP || '—' }}</p>
+      </div>
+      <div>
+        <p class="text-slate-400 mb-1">NIK</p>
+        <p class="font-semibold text-slate-700">{{ patient.patientData?.nik || '—' }}</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
+    <!-- LEFT: SOAP -->
+    <div class="flex-1 flex flex-col min-h-0 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
+      <!-- Tab Selector -->
+      <div class="grid grid-cols-4 gap-4 p-4 bg-slate-50 border-b border-slate-100">
+        <button *ngFor="let tab of tabs" (click)="activeTab = tab.id"
+          class="relative flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all"
+          [style.backgroundColor]="activeTab === tab.id ? tabColor(tab.id) : '#fff'"
+          [style.color]="activeTab === tab.id ? '#fff' : '#94a3b8'"
+          [style.borderColor]="activeTab === tab.id ? tabColor(tab.id) : 'transparent'"
+          [style.boxShadow]="activeTab === tab.id ? '0 4px 12px ' + tabColor(tab.id) + '33' : 'none'">
+          
+          <div *ngIf="savedTabs[tab.id]" class="absolute -top-2 -right-2 w-5 h-5 bg-[#187850] rounded-full text-white flex items-center justify-center border-2 border-white shadow-sm z-10">
+            <lucide-icon name="check" [size]="12"></lucide-icon>
+          </div>
+          
+          <span class="text-xl font-bold mb-0.5">{{ tab.letter }}</span>
+          <span class="text-sm font-medium">{{ tab.label }}</span>
+        </button>
+      </div>
+
+      <!-- Content -->
+      <div class="flex-1 overflow-y-auto">
+        <!-- Section Header -->
+        <div class="flex items-center justify-between p-6 pb-4 border-b border-slate-100 sticky top-0 bg-white z-10">
+          <div class="flex items-center gap-3">
+            <div class="w-8 h-8 rounded-md text-white flex items-center justify-center font-bold text-lg" [style.backgroundColor]="tabColor(activeTab)">{{ getActiveTab().letter }}</div>
+            <h2 class="text-xl font-bold text-slate-800">{{ getActiveTab().label }}</h2>
+          </div>
+        </div>
+        
+        <div class="p-6 pt-6">
+
+        <!-- ═══ SUBJEKTIF (S) ═══ -->
+        <div *ngIf="activeTab === 's'" class="space-y-6">
+          <div *ngFor="let field of subjFieldsConfig">
+            <div class="flex gap-2 items-center text-sm font-bold text-slate-600 uppercase mb-2 tracking-wide">
+              <div class="w-5 h-5 rounded flex items-center justify-center text-xs" style="background-color: rgba(56,191,168,0.12); color: #38bfa8">{{ field.icon }}</div>
+              {{ field.label }}
+            </div>
+            <div class="pl-7">
+              <textarea [(ngModel)]="subjData[field.key]" class="w-full border border-slate-200 bg-slate-50 transition-colors focus:bg-white rounded-xl p-3 text-sm text-slate-700 leading-relaxed outline-none focus:border-[#38bfa8] focus:ring-1 focus:ring-[#38bfa8] resize-none" rows="2" placeholder="Tulis {{ field.label.toLowerCase() }} di sini..."></textarea>
+            </div>
+          </div>
+
+          <!-- AI Diagnosis Preview -->
+          <div *ngIf="diagnoses.length > 0">
+            <div class="flex gap-2 items-center text-sm font-bold text-slate-600 uppercase mb-2 tracking-wide">
+              <lucide-icon name="brain" [size]="14" style="color: #38bfa8"></lucide-icon>
+              {{ diagnoses.length }} DIAGNOSIS AWAL
+            </div>
+            <div class="pl-7 space-y-3 mt-1">
+              <div *ngFor="let dx of diagnoses.slice(0,3); let i = index">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="text-sm font-semibold text-slate-800">{{ i + 1 }}. {{ dx.name }}</span>
+                  <span class="text-xs text-slate-500 font-mono">ICD-10: {{ dx.icd }}</span>
+                  <span [class]="'text-sm font-bold ' + (i === 0 ? 'text-[#38bfa8]' : 'text-slate-400')">{{ dx.score }}%</span>
+                </div>
+                <div class="h-2.5 bg-slate-100 rounded-full overflow-hidden">
+                  <div [class]="'h-full rounded-full ' + (i === 0 ? 'bg-[#38bfa8]' : 'bg-slate-300')" [style.width.%]="dx.score"></div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ OBJEKTIF (O) ═══ -->
+        <div *ngIf="activeTab === 'o'" class="space-y-8">
+          <div class="grid grid-cols-5 gap-3">
+            <div *ngFor="let v of vitalFields" class="border border-slate-200 p-3 rounded-xl">
+              <p class="text-xs text-slate-400 mb-1">{{ v.label }}</p>
+              <div class="flex items-center gap-1">
+                <input type="text" [(ngModel)]="objData[v.key]" [placeholder]="v.placeholder" class="w-full text-sm font-bold text-slate-800 outline-none" />
+                <span class="text-xs text-slate-400 flex-shrink-0">{{ v.unit }}</span>
+              </div>
+            </div>
+          </div>
+
+          <!-- Keadaan Umum -->
+          <div>
+            <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #3bbac7">
+              <div class="w-5 h-5 rounded flex items-center justify-center" style="background-color: rgba(59,186,199,0.12)"><span class="w-2 h-2 rounded-full" style="background-color: #3bbac7"></span></div>
+              KEADAAN UMUM
+            </div>
+            <div class="grid grid-cols-2 gap-y-5 gap-x-8 pl-7">
+              <div>
+                <p class="text-xs font-semibold text-slate-500 mb-2">Tingkat Kesadaran</p>
+                <select [(ngModel)]="objData['kesadaran']" class="w-full border border-slate-200 rounded-lg p-2 text-sm outline-none focus:border-[#3bbac7]">
+                  <option *ngFor="let o of ['Compos Mentis','Apatis','Somnolen','Sopor','Koma']">{{ o }}</option>
+                </select>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-500 mb-2">Status Gizi</p>
+                <input type="text" [(ngModel)]="objData['statusGizi']" class="w-full border-b border-slate-200 py-2 text-sm outline-none focus:border-[#3bbac7]" placeholder="BB 65kg, TB 170cm" />
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-500 mb-2">Keadaan Sakit</p>
+                <div class="flex gap-4">
+                  <label *ngFor="let opt of ['Ringan','Sedang','Berat']" class="flex items-center gap-2 text-sm cursor-pointer">
+                    <input type="radio" name="ksakit" [checked]="objData['keadaanSakit'] === opt" (change)="objData['keadaanSakit'] = opt" class="accent-[#3bbac7]" /> {{ opt }}
+                  </label>
+                </div>
+              </div>
+              <div>
+                <p class="text-xs font-semibold text-slate-500 mb-2">Tanda Visual</p>
+                <input type="text" [(ngModel)]="objData['tandaVisual']" class="w-full border-b border-slate-200 py-2 text-sm outline-none focus:border-[#3bbac7]" placeholder="Anemis, Sesak, Ikterik" />
+              </div>
+            </div>
+          </div>
+
+          <!-- Lab Results -->
+          <div>
+            <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #3bbac7">
+              <div class="w-5 h-5 rounded flex items-center justify-center" style="background-color: rgba(59,186,199,0.12)"><span class="w-2 h-2 rounded-full" style="background-color: #3bbac7"></span></div>
+              HASIL LABORATORIUM
+            </div>
+            <div class="pl-7 space-y-4">
+              <p class="text-xs font-bold text-slate-500">Hematologi</p>
+              <div class="grid grid-cols-4 gap-3">
+                <div *ngFor="let lab of hemaFields" class="border border-slate-200 rounded-lg p-2.5">
+                  <p class="text-[10px] text-slate-400 mb-1">{{ lab.label }}</p>
+                  <div class="flex items-center gap-1">
+                    <input type="text" [(ngModel)]="objData[lab.key]" class="w-full text-sm font-semibold text-slate-800 outline-none" placeholder="—" />
+                    <span class="text-[10px] text-slate-400">{{ lab.unit }}</span>
+                  </div>
+                </div>
+              </div>
+              <p class="text-xs font-bold text-slate-500 mt-4">Kimia Klinik</p>
+              <div class="grid grid-cols-4 gap-3">
+                <div *ngFor="let lab of kimiaFields" class="border border-slate-200 rounded-lg p-2.5">
+                  <p class="text-[10px] text-slate-400 mb-1">{{ lab.label }}</p>
+                  <div class="flex items-center gap-1">
+                    <input type="text" [(ngModel)]="objData[lab.key]" class="w-full text-sm font-semibold text-slate-800 outline-none" placeholder="—" />
+                    <span class="text-[10px] text-slate-400">{{ lab.unit }}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Rekomendasi Tindakan -->
+          <div *ngIf="diagnoses.length > 0">
+            <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #3bbac7">
+              <div class="w-5 h-5 rounded flex items-center justify-center" style="background-color: rgba(59,186,199,0.12)"><span class="w-2 h-2 rounded-full" style="background-color: #3bbac7"></span></div>
+              REKOMENDASI TINDAKAN
+            </div>
+            <div class="pl-7 flex flex-wrap gap-2">
+              <span *ngFor="let dx of diagnoses.slice(0,2)" class="px-4 py-1.5 rounded-full text-sm font-semibold bg-[#3bbac7]/10 text-[#3bbac7] border border-[#3bbac7]/20">{{ dx.name }}</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- ═══ ASSESSMENT (A) ═══ -->
+        <div *ngIf="activeTab === 'a'" class="space-y-6">
+          <!-- ICD-10 Dropdowns -->
+          <div *ngFor="let icd of [
+            {label: 'Diagnosis Utama (ICD-10)', model: 'dxUtama', search: 'searchUtama', show: 'showUtama', accent: '#fc8822'},
+            {label: 'Diagnosis Sekunder', model: 'dxSekunder', search: 'searchSekunder', show: 'showSekunder', accent: '#3bbac7'},
+            {label: 'Diagnosis Banding', model: 'dxBanding', search: 'searchBanding', show: 'showBanding', accent: '#b327fc'}
+          ]" [class]="icd.model === 'dxUtama' ? 'relative' : ''" [ngClass]="{'grid grid-cols-2 gap-6': icd.model !== 'dxUtama'}">
+            <div class="relative" [class.mb-6]="icd.model === 'dxUtama'">
+              <p class="text-xs font-bold text-slate-500 uppercase mb-2">{{ icd.label }}</p>
+              <div class="relative">
+                <lucide-icon name="search" class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" [size]="14"></lucide-icon>
+                <input type="text" class="w-full border border-slate-200 bg-slate-50 rounded-lg p-3 pl-9 text-sm font-semibold outline-none transition-colors"
+                  [value]="icdShowStates[icd.show] ? icdSearches[icd.search] : assData[icd.model]"
+                  (input)="icdSearches[icd.search] = $any($event.target).value; icdShowStates[icd.show] = true; updateIcdResults(icd.search)"
+                  (focus)="icdShowStates[icd.show] = true; updateIcdResults(icd.search)"
+                  (blur)="hideIcdDropdown(icd.show)"
+                  placeholder="Ketik kode ICD-10 atau nama penyakit..."
+                  [style.borderColor]="icdShowStates[icd.show] ? icd.accent : ''" />
+                <button *ngIf="assData[icd.model] && !icdShowStates[icd.show]" (click)="assData[icd.model] = ''; icdSearches[icd.search] = ''" class="absolute right-3 top-1/2 -translate-y-1/2 text-slate-400 hover:text-red-400 text-xs">✕</button>
+              </div>
+              <div *ngIf="icdShowStates[icd.show] && icdResults[icd.search] && icdResults[icd.search].length > 0" class="absolute z-50 w-full mt-1 bg-white border border-slate-200 rounded-xl shadow-xl max-h-60 overflow-y-auto">
+                <button *ngFor="let entry of icdResults[icd.search]" (mousedown)="selectIcd(icd.model, icd.search, icd.show, entry)"
+                  class="w-full text-left px-4 py-2.5 hover:bg-slate-50 flex items-center gap-3 border-b border-slate-50 last:border-0 transition-colors">
+                  <span class="text-xs font-mono font-bold px-2 py-0.5 rounded" [style.backgroundColor]="icd.accent + '15'" [style.color]="icd.accent">{{ entry.code }}</span>
+                  <span class="text-sm text-slate-700">{{ entry.nameId }}</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <div class="grid grid-cols-2 gap-6 pt-4">
+            <div>
+              <p class="text-xs font-bold text-slate-500 uppercase mb-3">Status Kasus</p>
+              <div class="flex gap-4">
+                <label *ngFor="let opt of ['Kasus Baru','Kasus Lama','Kambuh']" class="flex items-center gap-2 text-sm cursor-pointer border px-3 py-1.5 rounded-lg hover:bg-slate-50">
+                  <input type="radio" name="skasus" [checked]="assData['statusKasus'] === opt" (change)="assData['statusKasus'] = opt" class="accent-[#fc8822]" /> {{ opt }}
+                </label>
+              </div>
+            </div>
+            <div>
+              <p class="text-xs font-bold text-slate-500 uppercase mb-3">Prognosis</p>
+              <input type="text" [(ngModel)]="assData['prognosis']" class="w-full border border-slate-200 rounded-lg p-2.5 text-sm outline-none focus:border-[#fc8822]" placeholder="Dubia ad bonam" />
+            </div>
+          </div>
+          <div class="pt-4">
+            <p class="text-xs font-bold text-slate-500 uppercase mb-2">Analisis Kasus</p>
+            <textarea [(ngModel)]="assData['analisis']" class="w-full border border-slate-200 rounded-lg p-3 text-sm outline-none focus:border-[#fc8822] h-28 resize-none" placeholder="Tuliskan alasan penegakan diagnosis (reasoning)..."></textarea>
+            <p class="text-xs text-[#fc8822] mt-1 italic">*Teks ini otomatis ditarik dari AI Resume Medis</p>
+          </div>
+        </div>
+
+        <!-- ═══ PLAN (P) ═══ -->
+        <div *ngIf="activeTab === 'p'" class="space-y-6">
+          <div>
+            <p class="text-xs font-bold text-slate-500 uppercase mb-1">Diagnosis Utama</p>
+            <p class="text-sm font-semibold text-slate-800">{{ assData['dxUtama'] || 'Belum ada diagnosis' }}</p>
+          </div>
+
+          <!-- Resep Obat -->
+          <div>
+            <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #b327fc">
+              <lucide-icon name="file-text" [size]="14" style="color: #b327fc"></lucide-icon>
+              RESEP OBAT
+            </div>
+            <div class="border border-slate-200 rounded-xl overflow-hidden ml-7">
+              <table class="w-full text-sm">
+                <thead class="bg-[#187850] text-white">
+                  <tr>
+                    <th class="py-2 px-4 text-left font-medium">Nama Obat</th>
+                    <th class="py-2 px-4 text-left font-medium">Dosis</th>
+                    <th class="py-2 px-4 text-left font-medium">Frekuensi</th>
+                    <th class="py-2 px-4 text-left font-medium">Durasi</th>
+                    <th class="py-2 px-4 w-10"></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr *ngFor="let row of planData.obat; let i = index" class="border-b border-slate-100">
+                    <td class="py-2 px-4"><input type="text" [(ngModel)]="row['nama']" class="w-full outline-none bg-transparent" placeholder="Nama obat" /></td>
+                    <td class="py-2 px-4"><input type="text" [(ngModel)]="row['dosis']" class="w-full outline-none bg-transparent" placeholder="500 mg" /></td>
+                    <td class="py-2 px-4"><input type="text" [(ngModel)]="row['frekuensi']" class="w-full outline-none bg-transparent" placeholder="3 x 1" /></td>
+                    <td class="py-2 px-4"><input type="text" [(ngModel)]="row['durasi']" class="w-full outline-none bg-transparent" placeholder="3 hari" /></td>
+                    <td class="py-2 px-4"><button (click)="removeObat(i)" class="text-slate-400 hover:text-red-500">✕</button></td>
+                  </tr>
+                </tbody>
+              </table>
+              <button (click)="addObat()" class="w-full py-2 bg-slate-50 text-slate-500 text-xs font-semibold hover:bg-slate-100 flex items-center justify-center gap-1">➕ Tambah Obat</button>
+            </div>
+          </div>
+
+          <!-- Edukasi -->
+          <div>
+            <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #b327fc">
+              <lucide-icon name="alert-circle" [size]="14" style="color: #b327fc"></lucide-icon>
+              EDUKASI & INSTRUKSI
+            </div>
+            <div class="space-y-2 pl-7">
+              <label *ngFor="let item of planData.edukasiItems; let i = index" class="flex items-start gap-2 text-sm cursor-pointer leading-relaxed">
+                <input type="checkbox" class="accent-[#b327fc] rounded mt-0.5" [checked]="planData.edukasiChecked[i]" (change)="toggleEdukasi(i)" />
+                <span class="text-slate-700">{{ item }}</span>
+              </label>
+              <p *ngIf="planData.edukasiItems.length === 0" class="text-sm text-slate-400 italic">Tidak ada rekomendasi edukasi untuk diagnosis ini.</p>
+              <input type="text" class="w-full border-b border-slate-200 py-1 text-sm outline-none mt-2 placeholder-slate-400" placeholder="+ Tambah instruksi lain..." />
+            </div>
+            <p *ngIf="diagnoses.length > 0" class="text-[10px] text-[#b327fc] mt-2 ml-7 italic">Sumber: {{ getEducationSource() }}</p>
+          </div>
+
+          <!-- Tindak Lanjut -->
+          <div>
+            <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #b327fc">
+              <lucide-icon name="chevron-right" [size]="14" style="color: #b327fc"></lucide-icon>
+              TINDAK LANJUT
+            </div>
+            <div class="space-y-3 pl-7">
+              <label *ngFor="let opt of ['Pulang & Rawat Jalan','Rujuk Spesialis','Rawat Inap']" class="flex items-center gap-2 text-sm cursor-pointer">
+                <input type="radio" name="tl" class="accent-[#b327fc]" [checked]="planData.tindakLanjut === opt" (change)="planData.tindakLanjut = opt" /> {{ opt }}
+              </label>
+              <input *ngIf="planData.tindakLanjut === 'Rujuk Spesialis'" type="text" [(ngModel)]="planData.rujukTujuan" class="w-full border-b border-slate-200 py-1 text-sm outline-none mt-1 placeholder-slate-400 ml-6" placeholder="Tujuan rujukan..." />
+              <input *ngIf="planData.tindakLanjut === 'Rawat Inap'" type="text" [(ngModel)]="planData.rawatAlasan" class="w-full border-b border-slate-200 py-1 text-sm outline-none mt-1 placeholder-slate-400 ml-6" placeholder="Alasan rawat inap..." />
+            </div>
+          </div>
+        </div>
+        </div>
+      </div>
+
+      <!-- Bottom Action Bar -->
+      <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
+        <div class="flex gap-3">
+          <button class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-white flex items-center gap-2 text-slate-600"><lucide-icon name="printer" [size]="16"></lucide-icon> Cetak</button>
+          <button (click)="handlePartialSave()" class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium flex items-center gap-2 transition-colors" [class.bg-green-50]="savedTabs[activeTab]" [class.text-green-700]="savedTabs[activeTab]" [class.border-green-200]="savedTabs[activeTab]" [class.hover:bg-white]="!savedTabs[activeTab]" [class.text-slate-600]="!savedTabs[activeTab]">
+            <lucide-icon [name]="savedTabs[activeTab] ? 'check-circle' : 'save'" [size]="16"></lucide-icon> {{ savedTabs[activeTab] ? 'Tersimpan' : 'Simpan ' + getActiveTab().letter }}
+          </button>
+        </div>
+        <button (click)="handleComplete()" class="bg-[#187850] hover:bg-[#125c3d] text-white px-6 py-2 rounded-lg font-medium flex items-center gap-2 shadow-sm transition-colors"><lucide-icon name="check" [size]="16"></lucide-icon> Selesai</button>
+      </div>
+    </div>
+
+    <!-- RIGHT: Riwayat Medis Sidebar -->
+    <div class="w-full lg:w-72 flex flex-col gap-6">
+      <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex-1 max-h-[calc(100vh-200px)] overflow-y-auto">
+        <h3 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">
+          <lucide-icon name="brain" [size]="16" class="text-[#187850]"></lucide-icon>
+          Riwayat Medis
+        </h3>
+        <div class="mb-6">
+          <p class="text-xs font-semibold text-slate-500 uppercase mb-3">Kondisi Saat Ini</p>
+          <div class="flex flex-wrap gap-2">
+            <span *ngFor="let dx of diagnoses.slice(0,2)" class="px-3 py-1 bg-green-50 border border-green-200 text-green-700 text-xs rounded-full font-medium">{{ dx.name }}</span>
+          </div>
+        </div>
+        <div>
+          <p class="text-xs font-semibold text-slate-500 uppercase mb-3">Riwayat Kunjungan</p>
+          <div class="space-y-4">
+            <div class="relative pl-6">
+              <div class="absolute left-0 top-1 w-2.5 h-2.5 rounded-full bg-[#187850] border-2 border-white ring-2 ring-[#187850]/20"></div>
+              <p class="text-sm font-semibold text-slate-800">Kunjungan Hari Ini</p>
+              <p class="text-xs text-slate-400">{{ today }}</p>
+            </div>
+          </div>
+        </div>
+        <div class="mt-8 pt-6 border-t border-slate-100 flex justify-around">
+          <div class="text-center">
+            <p class="text-2xl font-bold text-slate-800">{{ patient.patientData?.tinggiBadan || '—' }}</p>
+            <p class="text-xs text-slate-500 font-medium">cm</p>
+          </div>
+          <div class="text-center">
+            <p class="text-2xl font-bold text-slate-800">{{ patient.patientData?.beratBadan || '—' }}</p>
+            <p class="text-xs text-slate-500 font-medium">kg</p>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>

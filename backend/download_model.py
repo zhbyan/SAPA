@@ -1,6 +1,10 @@
 """
-Download trained model from Google Drive
-Run this once before using the ML pipeline
+Download trained model & knowledge base from Google Drive
+Run this once before using the SAPA ML prediction pipeline
+
+Files downloaded:
+  - sapa_model.pkl (trained diagnosis model ~800 MB)
+  - knowledge_base.pkl (medical knowledge base)
 """
 import os
 import requests
@@ -48,35 +52,57 @@ def download_file_from_google_drive(file_id, destination):
 
 def main():
     """Main download function"""
-    GOOGLE_DRIVE_FILE_ID = "1XbGwhvyehkmRSVR19ThwJzwRkH7fB-5c"
+    # Google Drive File IDs
+    GOOGLE_DRIVE_MODEL_FILE_ID = "1XbGwhvyehkmRSVR19ThwJzwRkH7fB-5c"  # sapa_model.pkl
+    # knowledge_base.pkl
+    GOOGLE_DRIVE_KB_FILE_ID = "1BPrrVR4I3CkdWWkMHzPSkDYQ4Gw9hQfu"
 
     # Path untuk simpan model
     DATA_DIR = Path(__file__).parent.parent / "data"
     DATA_DIR.mkdir(exist_ok=True)
 
     model_path = DATA_DIR / "sapa_model.pkl"
+    kb_path = DATA_DIR / "knowledge_base.pkl"
 
-    # Cek apakah model sudah ada
-    if model_path.exists():
-        size_mb = model_path.stat().st_size / (1024 * 1024)
-        print(f"✅ Model sudah ada: {model_path} ({size_mb:.1f} MB)")
+    # Cek file mana yang sudah ada
+    model_exists = model_path.exists()
+    kb_exists = kb_path.exists()
+
+    if model_exists and kb_exists:
+        model_size = model_path.stat().st_size / (1024 * 1024)
+        kb_size = kb_path.stat().st_size / (1024 * 1024)
+        print(f"✅ Semua file sudah ada!")
+        print(f"   • sapa_model.pkl: {model_size:.1f} MB")
+        print(f"   • knowledge_base.pkl: {kb_size:.1f} MB")
         return True
 
-    print(f"📥 Download model dari Google Drive...")
-    print(f"📍 Tujuan: {model_path}")
-
-    if GOOGLE_DRIVE_FILE_ID == "YOUR_FILE_ID_HERE":
-        print("\n❌ ERROR: Anda belum set Google Drive File ID!")
-        print("\nCara mendapatkan File ID:")
-        print("1. Buka file di Google Drive")
-        print("2. Share → Copy link")
-        print("3. Link format: https://drive.google.com/file/d/FILE_ID/view?usp=drive_link")
-        print("4. Ganti YOUR_FILE_ID_HERE dengan FILE_ID")
-        return False
-
     try:
-        download_file_from_google_drive(GOOGLE_DRIVE_FILE_ID, model_path)
-        print(f"\n✅ Model berhasil didownload ke: {model_path}")
+        # Download sapa_model.pkl
+        if not model_exists:
+            print(f"📥 Download sapa_model.pkl dari Google Drive...")
+            download_file_from_google_drive(
+                GOOGLE_DRIVE_MODEL_FILE_ID, model_path)
+            print(f"✅ Model berhasil didownload!\n")
+        else:
+            size_mb = model_path.stat().st_size / (1024 * 1024)
+            print(f"✅ sapa_model.pkl sudah ada ({size_mb:.1f} MB)\n")
+
+        # Download knowledge_base.pkl (jika FILE_ID sudah di-set)
+        if GOOGLE_DRIVE_KB_FILE_ID != "YOUR_KB_FILE_ID_HERE":
+            if not kb_exists:
+                print(f"📥 Download knowledge_base.pkl dari Google Drive...")
+                download_file_from_google_drive(
+                    GOOGLE_DRIVE_KB_FILE_ID, kb_path)
+                print(f"✅ Knowledge Base berhasil didownload!\n")
+            else:
+                size_mb = kb_path.stat().st_size / (1024 * 1024)
+                print(f"✅ knowledge_base.pkl sudah ada ({size_mb:.1f} MB)\n")
+        else:
+            print("⚠️  Catatan: FILE_ID untuk knowledge_base.pkl belum di-set")
+            print(
+                "   Jika knowledge_base.pkl belum ada, owner perlu upload ke Google Drive\n")
+
+        print("✅ Setup complete! Teman bisa jalankan: python main.py")
         return True
     except Exception as e:
         print(f"\n❌ Error saat download: {e}")

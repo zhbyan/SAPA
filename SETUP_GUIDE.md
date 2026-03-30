@@ -1,44 +1,20 @@
 # 📥 Setup Guide - Download Model dari Google Drive
 
-## **Untuk Anda (Owner Model)**
-
-### Step 1: Upload Model ke Google Drive
-1. Buka [Google Drive](https://drive.google.com)
-2. Klik tombol `+ New` → **Folder**
-3. Beri nama: `SAPA-AI-Models`
-4. Upload file `data/sapa_model.pkl` ke folder tersebut (sama seperti yang ada di PC kamu)
-5. Klik kanan file → **Share**
-6. Ubah permission menjadi **Anyone with the link** → **Viewer** (View only)
-7. Copy link yang di-share (format: `https://drive.google.com/file/d/FILE_ID/view?usp=drive_link`)
-8. Ambil bagian `FILE_ID` dari URL (string panjang di tengah URL)
-
-### Step 2: Update Script dengan File ID Anda
-1. Buka file `backend/download_model.py` di VS Code
-2. Cari baris: `GOOGLE_DRIVE_FILE_ID = "YOUR_FILE_ID_HERE"` (kira-kira line 21)
-3. Ganti `YOUR_FILE_ID_HERE` dengan FILE_ID dari Google Drive Anda
-4. Simpan file (Ctrl+S)
-
-**Contoh perubahan:**
-```python
-# Sebelum
-GOOGLE_DRIVE_FILE_ID = "YOUR_FILE_ID_HERE"
-
-# Sesudah
-GOOGLE_DRIVE_FILE_ID = "1a2b3c4d5e6f7g8h9i0j1k2l3m4n5o6p7"
-```
-
 ### Step 3: Push ke GitHub
 Sebelum push, pastikan sudah:
-1. Update `GOOGLE_DRIVE_FILE_ID` di `backend/download_model.py` dengan FILE_ID Anda
+1. Update **KEDUA FILE_ID** di `backend/download_model.py`
+2. Verifikasi: File ID sudah di-ganti dari `YOUR_FILE_ID_HERE`
 
 Kemudian jalankan:
 ```bash
 git add backend/download_model.py backend/requirements.txt SETUP_GUIDE.md
-git commit -m "Add model download script from Google Drive"
+git commit -m "Add Google Drive model download script for inference"
 git push
 ```
 
-✅ **Sekarang teman kamu bisa clone dan setup! Lihat instruksi di bawah.**
+✅ **PENTING:** File CSV dan cache files sudah di-exclude via `.gitignore` (tidak perlu di-push)
+- Teman bisa straight jalankan tanpa mendownload dataset (hanya model files)
+
 
 ---
 
@@ -82,21 +58,36 @@ python download_model.py
 ```
 Script ini akan otomatis:
 - Membuat folder `data/` jika belum ada
-- Download `sapa_model.pkl` dari Google Drive
-- Simpan langsung ke `data/sapa_model.pkl` (sama seperti milikmu)
+- Download `sapa_model.pkl` dari Google Drive (~800 MB, ambil 5-15 menit)
+- Download `knowledge_base.pkl` dari Google Drive
+- Simpan langsung ke `data/sapa_model.pkl` & `data/knowledge_base.pkl`
+
+**📌 File yang Dibutuhkan Teman:**
+```
+✅ WAJIB DOWNLOAD:
+- sapa_model.pkl (trained model)
+- knowledge_base.pkl (medical knowledge base)
+
+❌ TIDAK PERLU (hanya untuk training):
+- augmented_dataset.csv
+- hybrid_dataset.csv  
+- train.csv, val.csv, test.csv
+- bert_cache_*.npy
+- kaggle_dataset.csv, kaggle_translated.csv
+```
 
 **Opsi B: Manual**
 Jika download otomatis tidak bisa:
-1. Download file dari link Google Drive yang kamu share
-2. Rename menjadi `sapa_model.pkl`
-3. Buat folder `data/` di root project (sejajar dengan folder `backend/`)
-4. Letakkan file di dalam folder `data/`
+1. Download 2 file dari Google Drive: `sapa_model.pkl` + `knowledge_base.pkl`
+2. Buat folder `data/` di root project (sejajar dengan folder `backend/`)
+3. Letakkan kedua file di dalam folder `data/`
 
 **Struktur folder yang benar:**
 ```
 AI - SAPA/
 ├── data/
-│   └── sapa_model.pkl  ← File model disimpan di sini
+│   ├── sapa_model.pkl  ← WAJIB ada
+│   └── knowledge_base.pkl  ← WAJIB ada
 ├── backend/
 ├── frontend/
 └── ...
@@ -124,11 +115,17 @@ Script akan otomatis:
 - Pastikan sudah di-push ke GitHub
 - Teman klone ulang atau update branch baru
 
-### ❌ "FileNotFoundError: data/sapa_model.pkl not found"
+### ❌ "FileNotFoundError: knowledge_base.pkl not found"
 **Solusi:**
-- Jalankan `python download_model.py` di folder `backend/`
-- Atau download manual dan letakkan di folder `data/` (bukan di `backend/data/`)
-- Struktur harus: `AI-SAPA/data/sapa_model.pkl` (tidak di dalam backend!)
+- Pastikan `knowledge_base.pkl` sudah di-download ke folder `data/`
+- Jalankan `python download_model.py` lagi
+- Atau download manual dan letakkan di folder `data/`
+
+### ❌ "Model loaded tapi ada warning: KB not found"
+**Solusi:**
+- Cek apakah `knowledge_base.pkl` ada di `data/`
+- Jika tidak ada, download dari Google Drive
+- Model tetap bisa jalan, tapi rekomendasi diagnosis kurang akurat
 
 ### ❌ "Download error / Permission denied"
 **Solusi:**
@@ -157,10 +154,13 @@ Script akan otomatis:
 ---
 
 ## **Tips & Trik** 💡
-- 💾 Model hanya perlu didownload **1x saja** (cek di folder `data/`)
+- 💾 **Hanya 2 file pkl yang dibutuhkan**: `sapa_model.pkl` + `knowledge_base.pkl`
+  - CSV & cache files hanya untuk **training/validation** (tidak perlu untuk inference)
+- 🚀 **Setup hanya 1x**: File model download sekali saja, tidak perlu diulang
 - 🔒 Jangan share Google Drive File ID ke publik (privacy/security)
 - 📌 Simpan link Google Drive backup di dokumentasi internal
-- ⚡ File size: ~792 MB (ambil waktu ~5-15 menit sesuai kecepatan internet)
-- 🔄 Setiap update model, owner upload ulang ke Google Drive & update `GOOGLE_DRIVE_FILE_ID`
-- 📱 Bisa download di Windows/Linux/Mac dengan script yang sama
+- ⚡ File size: ~800 MB (ambil waktu ~5-15 menit sesuai kecepatan internet)
+- 🔄 Setiap update model, owner upload ulang ke Google Drive & update `FILE_ID`
+- 📱 Script bisa jalan di Windows/Linux/Mac (cross-platform)
+- 🎯 Teman hanya perlu clone, install venv, install deps, download model, lalu run!
 

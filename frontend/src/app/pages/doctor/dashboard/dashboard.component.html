@@ -135,151 +135,158 @@
     </table>
   </div>
   
-  <dialog id="detail_patient_modal" class="modal">
-    <div class="modal-box bg-white max-w-4xl rounded-2xl p-0 overflow-hidden shadow-2xl relative">
-      <div class="bg-primary px-6 py-4 flex justify-between items-center text-white">
-        <h3 class="font-bold text-lg">Detail Rekam Medis (SOAP)</h3>
-        <button (click)="closeDetailModal()" class="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-lg">
-          <lucide-icon name="x" [size]="18"></lucide-icon>
-        </button>
-      </div>
-
-      <div class="p-6 overflow-y-auto max-h-[75vh] text-sm text-slate-700 space-y-7" *ngIf="selectedPatient">
+  <dialog id="detail_patient_modal" class="bg-transparent p-0 w-full h-full max-w-none max-h-none fixed inset-0 z-50 outline-none">
+    
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-sm flex justify-center items-center p-4 md:p-8">
+      
+      <div class="bg-white w-full max-w-5xl rounded-2xl shadow-2xl flex flex-col max-h-full overflow-hidden relative">
         
-        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div>
-            <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3">Identitas Pasien</h4>
-            <div class="grid grid-cols-1 gap-y-2">
-              <div><span class="text-slate-500 inline-block w-32">Nama Lengkap</span> <span class="font-semibold text-slate-800">: {{ selectedPatient.name }}</span></div>
-              <div><span class="text-slate-500 inline-block w-32">No. Registrasi</span> <span class="font-semibold text-slate-800">: #{{ getPatientId6(selectedPatient) }}</span></div>
-              <div><span class="text-slate-500 inline-block w-32">Usia / Kelamin</span> <span class="font-semibold text-slate-800">: {{ selectedPatient.patientData?.usia || '-' }} thn / {{ selectedPatient.patientData?.jenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</span></div>
-            </div>
-          </div>
-          <div>
-            <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3">Tanda Vital (Triage)</h4>
-            <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
-              <div><span class="text-slate-500 block mb-1 text-xs">Tekanan Darah</span> <span class="font-bold text-slate-800 text-base">{{ selectedPatient.patientData?.tekananDarah || '-' }} <span class="font-normal text-xs text-slate-500">mmHg</span></span></div>
-              <div><span class="text-slate-500 block mb-1 text-xs">Suhu Tubuh</span> <span class="font-bold text-slate-800 text-base">{{ selectedPatient.patientData?.suhuBadan || '-' }} <span class="font-normal text-xs text-slate-500">°C</span></span></div>
-            </div>
-          </div>
+        <div class="bg-primary px-6 py-4 flex justify-between items-center text-white shrink-0">
+          <h3 class="font-bold text-lg">Detail Rekam Medis (SOAP)</h3>
+          <button (click)="closeDetailModal()" class="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-lg">
+            <lucide-icon name="x" [size]="18"></lucide-icon>
+          </button>
         </div>
 
-        <div>
-          <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wide text-sm flex items-center gap-2">
-            Catatan Rekam Medis (SOAP)
-          </h4>
-
-          <div *ngIf="selectedPatient.subjData || selectedPatient.objData" class="space-y-5">
-            
-            <div *ngIf="selectedPatient.subjData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-              <div class="bg-[#38bfa8]/10 px-4 py-2.5 border-b border-[#38bfa8]/20 flex items-center gap-2">
-                <span class="w-6 h-6 rounded bg-[#38bfa8] text-white flex items-center justify-center font-bold text-xs">S</span>
-                <span class="font-bold text-[#38bfa8] text-sm">SUBJEKTIF (Keluhan)</span>
-              </div>
-              <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm">
-                <div *ngIf="selectedPatient.subjData.keluhanUtama"><span class="text-slate-500 block text-xs mb-0.5">Keluhan Utama:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.keluhanUtama}}</span></div>
-                <div *ngIf="selectedPatient.subjData.durasi"><span class="text-slate-500 block text-xs mb-0.5">Durasi:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.durasi}}</span></div>
-                <div *ngIf="selectedPatient.subjData.lokasiKeluhan"><span class="text-slate-500 block text-xs mb-0.5">Lokasi:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.lokasiKeluhan}}</span></div>
-                <div *ngIf="selectedPatient.subjData.keparahan"><span class="text-slate-500 block text-xs mb-0.5">Keparahan:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.keparahan}}</span></div>
-                <div *ngIf="selectedPatient.subjData.faktor"><span class="text-slate-500 block text-xs mb-0.5">Faktor/Riwayat:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.faktor}}</span></div>
-                <div *ngIf="selectedPatient.subjData.gejala"><span class="text-slate-500 block text-xs mb-0.5">Gejala Penyerta:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.gejala}}</span></div>
-              </div>
-            </div>
-
-            <div *ngIf="selectedPatient.objData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-              <div class="bg-[#3bbac7]/10 px-4 py-2.5 border-b border-[#3bbac7]/20 flex items-center gap-2">
-                <span class="w-6 h-6 rounded bg-[#3bbac7] text-white flex items-center justify-center font-bold text-xs">O</span>
-                <span class="font-bold text-[#3bbac7] text-sm">OBJEKTIF (Pemeriksaan)</span>
-              </div>
-              <div class="p-4">
-                <div class="flex flex-wrap gap-4 mb-4">
-                  <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">TD:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.td || '-'}} mmHg</span></span>
-                  <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">Nadi:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.nadi || '-'}} x/m</span></span>
-                  <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">Suhu:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.suhu || '-'}} °C</span></span>
-                  <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">SpO2:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.spo2 || '-'}} %</span></span>
+        <div class="p-6 overflow-y-auto flex-1 text-sm text-slate-700 bg-white" *ngIf="selectedPatient">
+          
+          <div id="printable-soap" class="space-y-7">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+              <div>
+                <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3">Identitas Pasien</h4>
+                <div class="grid grid-cols-1 gap-y-2">
+                  <div><span class="text-slate-500 inline-block w-32">Nama Lengkap</span> <span class="font-semibold text-slate-800">: {{ selectedPatient.name }}</span></div>
+                  <div><span class="text-slate-500 inline-block w-32">No. Registrasi</span> <span class="font-semibold text-slate-800">: #{{ getPatientId6(selectedPatient) }}</span></div>
+                  <div><span class="text-slate-500 inline-block w-32">Usia / Kelamin</span> <span class="font-semibold text-slate-800">: {{ selectedPatient.patientData?.usia || '-' }} thn / {{ selectedPatient.patientData?.jenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</span></div>
                 </div>
-                <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
-                  <div><span class="text-slate-500 block text-xs mb-0.5">Kesadaran / Keadaan Sakit:</span> <span class="font-medium text-slate-800">{{selectedPatient.objData.kesadaran}} — {{selectedPatient.objData.keadaanSakit}}</span></div>
-                  <div><span class="text-slate-500 block text-xs mb-0.5">Tanda Visual:</span> <span class="font-medium text-slate-800">{{selectedPatient.objData.tandaVisual || '-'}}</span></div>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3">Tanda Vital (Triage)</h4>
+                <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
+                  <div><span class="text-slate-500 block mb-1 text-xs">Tekanan Darah</span> <span class="font-bold text-slate-800 text-base">{{ selectedPatient.patientData?.tekananDarah || '-' }} <span class="font-normal text-xs text-slate-500">mmHg</span></span></div>
+                  <div><span class="text-slate-500 block mb-1 text-xs">Suhu Tubuh</span> <span class="font-bold text-slate-800 text-base">{{ selectedPatient.patientData?.suhuBadan || '-' }} <span class="font-normal text-xs text-slate-500">°C</span></span></div>
                 </div>
               </div>
             </div>
 
-            <div *ngIf="selectedPatient.assData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-              <div class="bg-[#fc8822]/10 px-4 py-2.5 border-b border-[#fc8822]/20 flex items-center gap-2">
-                <span class="w-6 h-6 rounded bg-[#fc8822] text-white flex items-center justify-center font-bold text-xs">A</span>
-                <span class="font-bold text-[#fc8822] text-sm">ASSESSMENT (Diagnosis)</span>
-              </div>
-              <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-sm">
-                <div>
-                  <span class="text-slate-500 block text-xs mb-1">Diagnosis Utama (ICD-10):</span> 
-                  <span class="font-bold text-slate-800 bg-[#fc8822]/10 px-2 py-1 rounded border border-[#fc8822]/20 inline-block">{{selectedPatient.assData.dxUtama || 'Belum ditegakkan'}}</span>
-                </div>
-                <div>
-                  <span class="text-slate-500 block text-xs mb-1">Diagnosis Sekunder / Banding:</span> 
-                  <span class="font-medium text-slate-800 block text-xs">{{selectedPatient.assData.dxSekunder || '-'}}</span>
-                  <span class="font-medium text-slate-800 block text-xs mt-0.5">{{selectedPatient.assData.dxBanding || '-'}}</span>
-                </div>
-                <div class="md:col-span-2" *ngIf="selectedPatient.assData.analisis">
-                  <span class="text-slate-500 block text-xs mb-1">Analisis Kasus Dokter:</span> 
-                  <p class="font-medium text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">{{selectedPatient.assData.analisis}}</p>
-                </div>
-              </div>
-            </div>
+            <div>
+              <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wide text-sm flex items-center gap-2">
+                Catatan Rekam Medis (SOAP)
+              </h4>
 
-            <div *ngIf="selectedPatient.planData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
-              <div class="bg-[#b327fc]/10 px-4 py-2.5 border-b border-[#b327fc]/20 flex items-center gap-2">
-                <span class="w-6 h-6 rounded bg-[#b327fc] text-white flex items-center justify-center font-bold text-xs">P</span>
-                <span class="font-bold text-[#b327fc] text-sm">PLAN (Tindak Lanjut & Resep)</span>
-              </div>
-              <div class="p-4 space-y-4 text-sm">
-                <div>
-                  <span class="text-slate-500 block text-xs mb-1">Instruksi Tindak Lanjut:</span> 
-                  <span class="font-bold text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 inline-block">
-                    {{selectedPatient.planData.tindakLanjut || '-'}}
-                    <span *ngIf="selectedPatient.planData.rujukTujuan"> ({{selectedPatient.planData.rujukTujuan}})</span>
-                    <span *ngIf="selectedPatient.planData.rawatAlasan"> ({{selectedPatient.planData.rawatAlasan}})</span>
-                  </span>
+              <div *ngIf="selectedPatient.subjData || selectedPatient.objData" class="space-y-5">
+                <div *ngIf="selectedPatient.subjData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                  <div class="bg-[#38bfa8]/10 px-4 py-2.5 border-b border-[#38bfa8]/20 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded bg-[#38bfa8] text-white flex items-center justify-center font-bold text-xs">S</span>
+                    <span class="font-bold text-[#38bfa8] text-sm">SUBJEKTIF (Keluhan)</span>
+                  </div>
+                  <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm">
+                    <div *ngIf="selectedPatient.subjData.keluhanUtama"><span class="text-slate-500 block text-xs mb-0.5">Keluhan Utama:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.keluhanUtama}}</span></div>
+                    <div *ngIf="selectedPatient.subjData.durasi"><span class="text-slate-500 block text-xs mb-0.5">Durasi:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.durasi}}</span></div>
+                    <div *ngIf="selectedPatient.subjData.lokasiKeluhan"><span class="text-slate-500 block text-xs mb-0.5">Lokasi:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.lokasiKeluhan}}</span></div>
+                    <div *ngIf="selectedPatient.subjData.keparahan"><span class="text-slate-500 block text-xs mb-0.5">Keparahan:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.keparahan}}</span></div>
+                    <div *ngIf="selectedPatient.subjData.faktor"><span class="text-slate-500 block text-xs mb-0.5">Faktor/Riwayat:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.faktor}}</span></div>
+                    <div *ngIf="selectedPatient.subjData.gejala"><span class="text-slate-500 block text-xs mb-0.5">Gejala Penyerta:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.gejala}}</span></div>
+                  </div>
                 </div>
-                
-                <div *ngIf="selectedPatient.planData.obat && selectedPatient.planData.obat.length > 0 && selectedPatient.planData.obat[0].nama">
-                  <span class="text-slate-500 block text-xs mb-1.5">Resep Obat:</span> 
-                  <div class="border border-slate-200 rounded-lg overflow-hidden">
-                    <table class="w-full text-left text-xs">
-                      <thead class="bg-slate-50 text-slate-500">
-                        <tr><th class="px-3 py-2 font-medium">Nama Obat</th><th class="px-3 py-2 font-medium">Dosis</th><th class="px-3 py-2 font-medium">Frekuensi</th><th class="px-3 py-2 font-medium">Durasi</th></tr>
-                      </thead>
-                      <tbody class="divide-y divide-slate-100">
-                        <tr *ngFor="let o of selectedPatient.planData.obat">
-                          <td class="px-3 py-2 font-bold text-slate-700" *ngIf="o.nama">{{o.nama}}</td>
-                          <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.dosis || '-'}}</td>
-                          <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.frekuensi || '-'}}</td>
-                          <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.durasi || '-'}}</td>
-                        </tr>
-                      </tbody>
-                    </table>
+
+                <div *ngIf="selectedPatient.objData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                  <div class="bg-[#3bbac7]/10 px-4 py-2.5 border-b border-[#3bbac7]/20 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded bg-[#3bbac7] text-white flex items-center justify-center font-bold text-xs">O</span>
+                    <span class="font-bold text-[#3bbac7] text-sm">OBJEKTIF (Pemeriksaan)</span>
+                  </div>
+                  <div class="p-4">
+                    <div class="flex flex-wrap gap-4 mb-4">
+                      <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">TD:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.td || '-'}} mmHg</span></span>
+                      <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">Nadi:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.nadi || '-'}} x/m</span></span>
+                      <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">Suhu:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.suhu || '-'}} °C</span></span>
+                      <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">SpO2:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.spo2 || '-'}} %</span></span>
+                    </div>
+                    <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                      <div><span class="text-slate-500 block text-xs mb-0.5">Kesadaran / Keadaan Sakit:</span> <span class="font-medium text-slate-800">{{selectedPatient.objData.kesadaran}} — {{selectedPatient.objData.keadaanSakit}}</span></div>
+                      <div><span class="text-slate-500 block text-xs mb-0.5">Tanda Visual:</span> <span class="font-medium text-slate-800">{{selectedPatient.objData.tandaVisual || '-'}}</span></div>
+                    </div>
+                  </div>
+                </div>
+
+                <div *ngIf="selectedPatient.assData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                  <div class="bg-[#fc8822]/10 px-4 py-2.5 border-b border-[#fc8822]/20 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded bg-[#fc8822] text-white flex items-center justify-center font-bold text-xs">A</span>
+                    <span class="font-bold text-[#fc8822] text-sm">ASSESSMENT (Diagnosis)</span>
+                  </div>
+                  <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                    <div>
+                      <span class="text-slate-500 block text-xs mb-1">Diagnosis Utama (ICD-10):</span> 
+                      <span class="font-bold text-slate-800 bg-[#fc8822]/10 px-2 py-1 rounded border border-[#fc8822]/20 inline-block">{{selectedPatient.assData.dxUtama || 'Belum ditegakkan'}}</span>
+                    </div>
+                    <div>
+                      <span class="text-slate-500 block text-xs mb-1">Diagnosis Sekunder / Banding:</span> 
+                      <span class="font-medium text-slate-800 block text-xs">{{selectedPatient.assData.dxSekunder || '-'}}</span>
+                      <span class="font-medium text-slate-800 block text-xs mt-0.5">{{selectedPatient.assData.dxBanding || '-'}}</span>
+                    </div>
+                    <div class="md:col-span-2" *ngIf="selectedPatient.assData.analisis">
+                      <span class="text-slate-500 block text-xs mb-1">Analisis Kasus Dokter:</span> 
+                      <p class="font-medium text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">{{selectedPatient.assData.analisis}}</p>
+                    </div>
+                  </div>
+                </div>
+
+                <div *ngIf="selectedPatient.planData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+                  <div class="bg-[#b327fc]/10 px-4 py-2.5 border-b border-[#b327fc]/20 flex items-center gap-2">
+                    <span class="w-6 h-6 rounded bg-[#b327fc] text-white flex items-center justify-center font-bold text-xs">P</span>
+                    <span class="font-bold text-[#b327fc] text-sm">PLAN (Tindak Lanjut & Resep)</span>
+                  </div>
+                  <div class="p-4 space-y-4 text-sm">
+                    <div>
+                      <span class="text-slate-500 block text-xs mb-1">Instruksi Tindak Lanjut:</span> 
+                      <span class="font-bold text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 inline-block">
+                        {{selectedPatient.planData.tindakLanjut || '-'}}
+                        <span *ngIf="selectedPatient.planData.rujukTujuan"> ({{selectedPatient.planData.rujukTujuan}})</span>
+                        <span *ngIf="selectedPatient.planData.rawatAlasan"> ({{selectedPatient.planData.rawatAlasan}})</span>
+                      </span>
+                    </div>
+                    
+                    <div *ngIf="selectedPatient.planData.obat && selectedPatient.planData.obat.length > 0 && selectedPatient.planData.obat[0].nama">
+                      <span class="text-slate-500 block text-xs mb-1.5">Resep Obat:</span> 
+                      <div class="border border-slate-200 rounded-lg overflow-hidden">
+                        <table class="w-full text-left text-xs">
+                          <thead class="bg-slate-50 text-slate-500">
+                            <tr><th class="px-3 py-2 font-medium">Nama Obat</th><th class="px-3 py-2 font-medium">Dosis</th><th class="px-3 py-2 font-medium">Frekuensi</th><th class="px-3 py-2 font-medium">Durasi</th></tr>
+                          </thead>
+                          <tbody class="divide-y divide-slate-100">
+                            <tr *ngFor="let o of selectedPatient.planData.obat">
+                              <td class="px-3 py-2 font-bold text-slate-700" *ngIf="o.nama">{{o.nama}}</td>
+                              <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.dosis || '-'}}</td>
+                              <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.frekuensi || '-'}}</td>
+                              <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.durasi || '-'}}</td>
+                            </tr>
+                          </tbody>
+                        </table>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>
+              
+              <div *ngIf="!selectedPatient.subjData && !selectedPatient.doctorNotes" class="bg-slate-50 p-6 text-center rounded-xl border border-slate-100 text-slate-400 italic">
+                Belum ada data rekam medis yang dicatat oleh dokter.
+              </div>
+
             </div>
           </div>
-          
-          <div *ngIf="!selectedPatient.subjData && selectedPatient.doctorNotes" class="bg-green-50/50 p-4 rounded-xl border border-green-100">
-            <p class="whitespace-pre-line leading-relaxed text-justify text-slate-800">{{ selectedPatient.doctorNotes }}</p>
-          </div>
+        </div>
 
-          <div *ngIf="!selectedPatient.subjData && !selectedPatient.doctorNotes" class="bg-slate-50 p-6 text-center rounded-xl border border-slate-100 text-slate-400 italic">
-            Belum ada data rekam medis yang dicatat oleh dokter.
-          </div>
-
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3 shrink-0">
+          <button (click)="downloadPDF()" class="bg-[#187850] text-white hover:bg-[#125c3d] px-5 py-2.5 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2">
+            <lucide-icon name="download" [size]="16"></lucide-icon> Cetak PDF
+          </button>
+          <button (click)="closeDetailModal()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 px-6 py-2.5 rounded-lg font-semibold transition-all shadow-sm">
+            Tutup
+          </button>
         </div>
       </div>
-
-      <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end">
-        <button (click)="closeDetailModal()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 px-6 py-2 rounded-lg font-semibold transition-all shadow-sm">Tutup Laporan</button>
-      </div>
+      
     </div>
-    
   </dialog>
 
 </div>

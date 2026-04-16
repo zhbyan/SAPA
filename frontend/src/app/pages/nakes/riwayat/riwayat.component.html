@@ -6,8 +6,8 @@
     </div>
   </div>
 
-  <div *ngIf="!completedPatients || completedPatients.length === 0" class="text-center py-16 bg-white rounded-xl border border-slate-200">
-    <p class="text-slate-500">Belum ada data pasien yang selesai diperiksa.</p>
+  <div *ngIf="!completedPatients || completedPatients.length === 0" class="text-center py-16 bg-white rounded-xl border border-slate-200 shadow-sm">
+    <p class="text-slate-500 font-medium">Belum ada data pasien yang selesai diperiksa.</p>
   </div>
 
   <div *ngIf="completedPatients && completedPatients.length > 0" class="bg-white rounded-xl border border-slate-200 shadow-sm overflow-hidden">
@@ -30,11 +30,11 @@
           <td class="px-6 py-4 font-bold text-slate-800">{{ p.name }}</td>
           <td class="px-6 py-4">
             <span class="text-xs text-slate-600 bg-slate-100 px-2.5 py-1 rounded border border-slate-200">
-              TD: {{ p.patientData?.tekananDarah || '-' }} | S: {{ p.patientData?.suhuBadan || '-' }}
+              TD: {{ p?.patientData?.tekananDarah || '-' }} | S: {{ p?.patientData?.suhuBadan || '-' }}
             </span>
           </td>
           <td class="px-6 py-4 text-center">
-            <button (click)="openHistoryDetail(p)" class="bg-white border border-slate-300 text-primary hover:bg-primary/10 hover:border-primary px-4 py-2 rounded-lg text-xs font-semibold transition-all">
+            <button (click)="openHistoryDetail(p)" class="bg-white border border-slate-300 text-primary hover:bg-primary/10 hover:border-primary px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm">
               Lihat Data Triage
             </button>
           </td>
@@ -43,51 +43,62 @@
     </table>
   </div>
 
-  <dialog id="history_detail_modal" class="modal z-50">
-    <div class="modal-box bg-white max-w-3xl rounded-2xl p-0 overflow-hidden shadow-2xl relative">
-      <div class="bg-slate-800 px-6 py-4 flex justify-between items-center text-white">
-        <h3 class="font-bold text-lg">Detail Data Triage Pasien</h3>
-        <button (click)="closeHistoryDetail()" class="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 w-8 h-8 rounded-lg flex items-center justify-center font-bold">✕</button>
-      </div>
+  <dialog id="history_detail_modal" class="bg-transparent p-0 w-full h-full max-w-none max-h-none fixed inset-0 z-50 outline-none">
+    <div class="fixed inset-0 bg-slate-900/60 backdrop-sm flex justify-center items-center p-4 md:p-8">
+      <div class="bg-white w-full max-w-3xl rounded-2xl shadow-2xl flex flex-col max-h-[90vh] overflow-hidden relative">
+        
+        <div class="bg-primary px-6 py-4 flex justify-between items-center text-white shrink-0">
+          <h3 class="font-bold text-lg">Detail Data Triage Pasien</h3>
+          <button (click)="closeHistoryDetail()" class="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 w-8 h-8 rounded-lg flex items-center justify-center font-bold">✕</button>
+        </div>
 
-      <div class="p-6 overflow-y-auto max-h-[70vh] text-sm text-slate-700 space-y-6" *ngIf="selectedHistoryPatient">
-        <div class="grid grid-cols-2 gap-6">
-          <div>
-            <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-1.5 mb-2">Identitas Pasien</h4>
-            <div class="grid grid-cols-1 gap-y-1">
-              <div><span class="text-slate-500 inline-block w-28">Nama</span> <span class="font-semibold text-slate-800">: {{ selectedHistoryPatient.name }}</span></div>
-              <div><span class="text-slate-500 inline-block w-28">No. Registrasi</span> <span class="font-semibold text-slate-800">: #{{ getPatientId6(selectedHistoryPatient) }}</span></div>
-              <div><span class="text-slate-500 inline-block w-28">Usia / Kelamin</span> <span class="font-semibold text-slate-800">: {{ selectedHistoryPatient.patientData?.usia || '-' }} thn / {{ selectedHistoryPatient.patientData?.jenisKelamin === 'L' ? 'L' : 'P' }}</span></div>
+        <div class="p-6 overflow-y-auto flex-1 text-sm text-slate-700 space-y-6" *ngIf="selectedHistoryPatient">
+          <div id="printable-triage" class="space-y-6">
+            <div class="grid grid-cols-2 gap-6">
+              <div>
+                <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-1.5 mb-2">Identitas Pasien</h4>
+                <div class="grid grid-cols-1 gap-y-1">
+                  <div><span class="text-slate-500 inline-block w-28">Nama</span> <span class="font-semibold text-slate-800">: {{ selectedHistoryPatient.name }}</span></div>
+                  <div><span class="text-slate-500 inline-block w-28">No. Registrasi</span> <span class="font-semibold text-slate-800">: #{{ getPatientId6(selectedHistoryPatient) }}</span></div>
+                  <div><span class="text-slate-500 inline-block w-28">Usia / Kelamin</span> <span class="font-semibold text-slate-800">: {{ selectedHistoryPatient.patientData?.usia || '-' }} thn / {{ selectedHistoryPatient.patientData?.jenisKelamin === 'L' ? 'L' : 'P' }}</span></div>
+                </div>
+              </div>
+              <div>
+                <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-1.5 mb-2">Tanda Vital</h4>
+                <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
+                  <div><span class="text-slate-500 block mb-0.5 text-xs">Tekanan Darah</span> <span class="font-bold text-slate-800 text-sm">{{ selectedHistoryPatient.patientData?.tekananDarah || '-' }} <span class="font-normal text-[10px] text-slate-500">mmHg</span></span></div>
+                  <div><span class="text-slate-500 block mb-0.5 text-xs">Suhu Tubuh</span> <span class="font-bold text-slate-800 text-sm">{{ selectedHistoryPatient.patientData?.suhuBadan || '-' }} <span class="font-normal text-[10px] text-slate-500">°C</span></span></div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-1.5 mb-3">Hasil Anamnesis (SAPA AI)</h4>
+              <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-2 text-sm">
+                <div class="grid grid-cols-[140px_1fr]"><span class="text-slate-500 font-medium">Keluhan Utama</span> <span class="font-bold text-slate-800">: {{ selectedHistoryPatient.summary?.rasaFields?.keluhan_utama || '-' }}</span></div>
+                <div class="grid grid-cols-[140px_1fr]"><span class="text-slate-500 font-medium">Durasi</span> <span class="font-medium text-slate-800">: {{ selectedHistoryPatient.summary?.rasaFields?.durasi || '-' }}</span></div>
+                <div class="grid grid-cols-[140px_1fr]"><span class="text-slate-500 font-medium">Lokasi Keluhan</span> <span class="font-medium text-slate-800">: {{ selectedHistoryPatient.summary?.rasaFields?.lokasi_keluhan || '-' }}</span></div>
+                <div class="grid grid-cols-[140px_1fr]"><span class="text-slate-500 font-medium">Gejala Penyerta</span> <span class="font-medium text-slate-800">: {{ selectedHistoryPatient.summary?.rasaFields?.gejala_penyerta || '-' }}</span></div>
+                <div class="grid grid-cols-[140px_1fr] mt-2 pt-2 border-t border-blue-200"><span class="text-slate-500 font-medium">Resume Naratif</span> <span class="font-medium text-slate-800 italic">: "{{ selectedHistoryPatient.summary?.resumeMedis || '-' }}"</span></div>
+              </div>
+            </div>
+
+            <div class="text-center bg-slate-50 border border-slate-100 py-3 rounded-lg text-xs text-slate-400 italic mt-6">
+              Catatan: Data pemeriksaan fisik lanjutan, diagnosis dokter, dan resep obat dirahasiakan (Hanya akses Dokter).
             </div>
           </div>
-          <div>
-            <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-1.5 mb-2">Tanda Vital</h4>
-            <div class="grid grid-cols-2 gap-2 bg-slate-50 p-2.5 rounded-lg border border-slate-100">
-              <div><span class="text-slate-500 block mb-0.5 text-xs">Tekanan Darah</span> <span class="font-bold text-slate-800 text-sm">{{ selectedHistoryPatient.patientData?.tekananDarah || '-' }} <span class="font-normal text-[10px] text-slate-500">mmHg</span></span></div>
-              <div><span class="text-slate-500 block mb-0.5 text-xs">Suhu Tubuh</span> <span class="font-bold text-slate-800 text-sm">{{ selectedHistoryPatient.patientData?.suhuBadan || '-' }} <span class="font-normal text-[10px] text-slate-500">°C</span></span></div>
-            </div>
-          </div>
         </div>
 
-        <div>
-          <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-1.5 mb-3">Hasil Anamnesis (SAPA AI)</h4>
-          <div class="bg-blue-50/50 p-4 rounded-xl border border-blue-100 space-y-2 text-sm">
-            <div class="grid grid-cols-[140px_1fr]"><span class="text-slate-500 font-medium">Keluhan Utama</span> <span class="font-bold text-slate-800">: {{ selectedHistoryPatient.summary?.rasaFields?.keluhan_utama || '-' }}</span></div>
-            <div class="grid grid-cols-[140px_1fr]"><span class="text-slate-500 font-medium">Durasi</span> <span class="font-medium text-slate-800">: {{ selectedHistoryPatient.summary?.rasaFields?.durasi || '-' }}</span></div>
-            <div class="grid grid-cols-[140px_1fr]"><span class="text-slate-500 font-medium">Lokasi Keluhan</span> <span class="font-medium text-slate-800">: {{ selectedHistoryPatient.summary?.rasaFields?.lokasi_keluhan || '-' }}</span></div>
-            <div class="grid grid-cols-[140px_1fr]"><span class="text-slate-500 font-medium">Gejala Penyerta</span> <span class="font-medium text-slate-800">: {{ selectedHistoryPatient.summary?.rasaFields?.gejala_penyerta || '-' }}</span></div>
-            <div class="grid grid-cols-[140px_1fr] mt-2 pt-2 border-t border-blue-200"><span class="text-slate-500 font-medium">Resume Naratif</span> <span class="font-medium text-slate-800 italic">: "{{ selectedHistoryPatient.summary?.resumeMedis || '-' }}"</span></div>
-          </div>
+        <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end gap-3 shrink-0">
+          <button (click)="downloadPDF()" class="bg-[#187850] text-white hover:bg-[#125c3d] px-5 py-2.5 rounded-lg font-semibold transition-all shadow-sm flex items-center gap-2">
+             Cetak PDF
+          </button>
+          <button (click)="closeHistoryDetail()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 px-6 py-2.5 rounded-lg font-semibold transition-all shadow-sm">
+            Tutup Laporan
+          </button>
         </div>
 
-        <div class="text-center bg-slate-50 border border-slate-100 py-3 rounded-lg text-xs text-slate-400 italic mt-6">
-          Catatan: Data pemeriksaan fisik lanjutan, diagnosis dokter, dan resep obat dirahasiakan (Hanya akses Dokter).
-        </div>
-      </div>
-      <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end">
-        <button (click)="closeHistoryDetail()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 px-6 py-2 rounded-lg font-semibold transition-all">Kembali</button>
       </div>
     </div>
-    <form method="dialog" class="modal-backdrop bg-slate-900/50"></form>
   </dialog>
 </div>

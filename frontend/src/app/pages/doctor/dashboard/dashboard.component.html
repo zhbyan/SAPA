@@ -1,6 +1,4 @@
-<!-- Doctor Dashboard — from React DoctorDashboard.jsx Tailwind classes -->
-<div class="animate-fadeIn">
-  <!-- Header -->
+<div class="animate-fadeIn relative">
   <div class="flex items-center justify-between mb-6">
     <div>
       <h1 class="text-2xl font-bold text-slate-900">Dashboard</h1>
@@ -11,19 +9,18 @@
     </div>
   </div>
 
-  <!-- Stat Cards -->
   <div class="grid grid-cols-4 gap-4 mb-8">
-    <div class="rounded-xl p-5 border transition-all bg-primary text-white border-primary shadow-lg shadow-primary/20">
-      <p class="text-xs font-medium mb-1 text-white/80">Antrian</p>
-      <p class="text-3xl font-bold">{{ patients.length }}</p>
+    <div (click)="setTab('antrian')" [class]="'rounded-xl p-5 border transition-all cursor-pointer ' + (activeTab === 'antrian' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-slate-800 border-slate-200 hover:border-primary/50 hover:shadow-md')">
+      <p [class]="'text-xs font-medium mb-1 ' + (activeTab === 'antrian' ? 'text-white/80' : 'text-slate-500')">Antrian</p>
+      <p class="text-3xl font-bold">{{ waitingPatients.length }}</p>
     </div>
     <div class="rounded-xl p-5 border transition-all bg-white text-slate-800 border-slate-200">
-      <p class="text-xs font-medium mb-1 text-slate-500">Dalam Antrian</p>
+      <p class="text-xs font-medium mb-1 text-slate-500">Kritis (Tinggi)</p>
       <p class="text-3xl font-bold">{{ dalamAntrian }}</p>
     </div>
-    <div class="rounded-xl p-5 border transition-all bg-white text-slate-800 border-slate-200">
-      <p class="text-xs font-medium mb-1 text-slate-500">Selesai</p>
-      <p class="text-3xl font-bold">{{ completedCount }}</p>
+    <div (click)="setTab('selesai')" [class]="'rounded-xl p-5 border transition-all cursor-pointer ' + (activeTab === 'selesai' ? 'bg-primary text-white border-primary shadow-lg shadow-primary/20' : 'bg-white text-slate-800 border-slate-200 hover:border-primary/50 hover:shadow-md')">
+      <p [class]="'text-xs font-medium mb-1 ' + (activeTab === 'selesai' ? 'text-white/80' : 'text-slate-500')">Selesai</p>
+      <p class="text-3xl font-bold">{{ completedPatients.length }}</p>
     </div>
     <div class="rounded-xl p-5 border transition-all bg-white text-slate-800 border-slate-200">
       <p class="text-xs font-medium mb-1 text-slate-500">Total Pasien</p>
@@ -31,37 +28,34 @@
     </div>
   </div>
 
-  <!-- Patient List -->
-  <h2 class="text-lg font-bold text-slate-900 mb-4">Daftar Pasien</h2>
-
-  <div *ngIf="patients.length === 0" class="text-center py-16 bg-white rounded-xl border border-slate-200">
-    <p class="text-slate-500">Tidak ada antrian pasien saat ini.</p>
+  <div class="flex items-center justify-between mb-4">
+    <h2 class="text-lg font-bold text-slate-900">
+      Daftar Pasien <span class="text-primary">({{ activeTab === 'antrian' ? 'Menunggu' : 'Selesai' }})</span>
+    </h2>
   </div>
 
-  <div *ngIf="patients.length > 0" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-    <div *ngFor="let patient of patients; let idx = index" (click)="openPatient(patient)"
-      class="group bg-white rounded-xl border border-slate-200 p-5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer relative">
-      <!-- Arrow -->
-      <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-primary"><lucide-icon name="arrow-up-right" [size]="18"></lucide-icon></div>
+  <div *ngIf="currentPatients.length === 0" class="text-center py-16 bg-white rounded-xl border border-slate-200">
+    <p class="text-slate-500">Tidak ada pasien dalam daftar {{ activeTab === 'antrian' ? 'antrian' : 'selesai' }} saat ini.</p>
+  </div>
 
-      <!-- Header -->
+  <div *ngIf="currentPatients.length > 0 && activeTab === 'antrian'" class="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+    <div *ngFor="let patient of currentPatients; let idx = index" (click)="openPatient(patient)" class="group bg-white rounded-xl border border-slate-200 p-5 hover:border-primary/40 hover:shadow-lg hover:shadow-primary/5 transition-all cursor-pointer relative">
+      <div class="absolute top-4 right-4 opacity-0 group-hover:opacity-100 transition-opacity text-primary">
+        <lucide-icon name="arrow-up-right" [size]="18"></lucide-icon>
+      </div>
       <div class="flex items-center gap-3 mb-4">
-        <div class="w-10 h-10 rounded-full bg-primary text-white flex items-center justify-center text-sm font-bold flex-shrink-0">{{ getPatientNumber(patient) }}</div>
+        <div class="w-10 h-10 rounded-full text-white flex items-center justify-center text-sm font-bold flex-shrink-0 bg-primary">{{ getPatientNumber(patient) }}</div>
         <div class="min-w-0">
           <h3 class="font-bold text-slate-800 truncate">{{ patient.name }}</h3>
           <p class="text-xs text-slate-400">Nomor Pasien: #{{ patient.id?.toString().slice(-6) }}</p>
         </div>
       </div>
-
-      <!-- Top Diagnosis Tags -->
       <div *ngIf="getDiagnoses(patient).length > 0" class="mb-4">
         <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-2">Top-{{ getDiagnoses(patient).length }} Diagnosis</p>
         <div class="flex flex-wrap gap-1.5">
           <span *ngFor="let dx of getDiagnoses(patient)" class="px-2.5 py-1 bg-primary/10 text-primary text-[11px] font-semibold rounded-full border border-primary/20">{{ dx.name }}</span>
         </div>
       </div>
-
-      <!-- Prediksi AI Bar Chart -->
       <div *ngIf="getDiagnoses(patient).length > 0" class="mb-4">
         <p class="text-[10px] font-bold text-slate-500 uppercase tracking-wider mb-2 flex items-center gap-1.5">
           <span class="w-4 h-4 rounded bg-primary/15 flex items-center justify-center text-[9px] text-primary">⚕</span> Prediksi AI
@@ -76,46 +70,216 @@
                 <p class="text-[7px] text-slate-400 font-mono">{{ dx.icd }}</p>
               </div>
               <div class="w-full relative">
-                <div [class]="'w-full rounded-md bar-animate relative overflow-hidden ' + (i === 0 ? 'bar-pulse bar-shine' : '')"
-                  [style.height.px]="getBarHeight(dx.score)"
-                  [style.background]="getBarGradient(i)"
-                  [style.box-shadow]="getBarGlow(i)"
-                  [style.animation-delay]="i * 150 + 'ms'">
+                <div [class]="'w-full rounded-md bar-animate relative overflow-hidden ' + (i === 0 ? 'bar-pulse bar-shine' : '')" [style.height.px]="getBarHeight(dx.score)" [style.background]="getBarGradient(i)" [style.box-shadow]="getBarGlow(i)" [style.animation-delay]="i * 150 + 'ms'">
                   <span class="absolute inset-0 flex items-center justify-center text-[12px] font-black text-white" style="text-shadow: 0 1px 3px rgba(0,0,0,0.2)">{{ dx.score }}%</span>
                 </div>
               </div>
             </div>
           </div>
-          <!-- TD + Suhu -->
           <div class="flex justify-between items-center mt-3 pt-2.5 border-t border-green-200/40 relative z-10">
-            <span *ngIf="patient.patientData?.tekananDarah" class="text-[11px]">
-              <span class="font-bold text-slate-700">TD</span>
-              <span class="text-slate-500 ml-1">{{ patient.patientData.tekananDarah }}</span>
-              <span class="text-slate-400 text-[9px] ml-0.5">mmHg</span>
-            </span>
-            <span *ngIf="patient.patientData?.suhuBadan" class="text-[11px]">
-              <span class="font-bold text-slate-700">Suhu</span>
-              <span class="text-slate-500 ml-1">{{ patient.patientData.suhuBadan }}</span>
-              <span class="text-slate-400 text-[9px]">°C</span>
-            </span>
+            <span *ngIf="patient.patientData?.tekananDarah" class="text-[11px]"><span class="font-bold text-slate-700">TD</span> <span class="text-slate-500 ml-1">{{ patient.patientData.tekananDarah }}</span> <span class="text-slate-400 text-[9px] ml-0.5">mmHg</span></span>
+            <span *ngIf="patient.patientData?.suhuBadan" class="text-[11px]"><span class="font-bold text-slate-700">Suhu</span> <span class="text-slate-500 ml-1">{{ patient.patientData.suhuBadan }}</span> <span class="text-slate-400 text-[9px]">°C</span></span>
           </div>
         </div>
       </div>
-
-      <!-- Kunjungan -->
       <div class="flex items-center gap-2 text-xs text-slate-500 mb-3 pb-3 border-b border-slate-100">
         <div class="w-6 h-6 rounded-full bg-primary/15 flex items-center justify-center flex-shrink-0"><lucide-icon name="calendar" [size]="12" class="text-primary"></lucide-icon></div>
-        <div>
-          <span class="font-medium">Kunjungan</span><br/>
-          <span class="text-slate-400">{{ patient.time || today }}</span>
-        </div>
+        <div><span class="font-medium">Kunjungan</span><br/><span class="text-slate-400">{{ patient.time || today }}</span></div>
       </div>
-
-      <!-- Gejala -->
       <div *ngIf="getGejala(patient)">
         <p class="text-[10px] font-semibold text-slate-400 uppercase tracking-wider mb-1">Gejala</p>
         <p class="text-xs text-slate-600 leading-relaxed">{{ getGejala(patient) }}</p>
       </div>
     </div>
   </div>
+
+  <div *ngIf="currentPatients.length > 0 && activeTab === 'selesai'" class="overflow-x-auto bg-white rounded-xl border border-slate-200 shadow-sm">
+    <table class="w-full text-left text-sm whitespace-nowrap">
+      <thead class="bg-slate-50 border-b border-slate-200 text-slate-600">
+        <tr>
+          <th class="px-6 py-4 font-semibold w-16">No</th>
+          <th class="px-6 py-4 font-semibold">Waktu</th>
+          <th class="px-6 py-4 font-semibold">ID Pasien</th>
+          <th class="px-6 py-4 font-semibold">Nama Pasien</th>
+          <th class="px-6 py-4 font-semibold">Tanda Vital</th>
+          <th class="px-6 py-4 font-semibold">Diagnosis Akhir</th>
+          <th class="px-6 py-4 font-semibold text-center">Status</th>
+          <th class="px-6 py-4 font-semibold text-center w-32">Action</th>
+        </tr>
+      </thead>
+      <tbody class="divide-y divide-slate-100">
+        <tr *ngFor="let patient of currentPatients; let idx = index" class="hover:bg-slate-50 transition-colors">
+          <td class="px-6 py-4 text-slate-500">{{ idx + 1 }}</td>
+          <td class="px-6 py-4 text-slate-600 font-medium">{{ patient.time || '-' }}</td>
+          <td class="px-6 py-4 font-mono text-slate-400 text-xs">#{{ getPatientId6(patient) }}</td>
+          <td class="px-6 py-4 font-bold text-slate-800">{{ patient.name }}</td>
+          <td class="px-6 py-4">
+            <div class="flex gap-2 text-xs">
+              <span *ngIf="patient.patientData?.tekananDarah" class="bg-blue-50 text-blue-600 px-2.5 py-1 rounded border border-blue-100/50">TD: {{ patient.patientData.tekananDarah }}</span>
+            </div>
+          </td>
+          <td class="px-6 py-4">
+            <span *ngIf="patient.assData?.dxUtama" class="bg-primary/10 text-primary px-3 py-1 rounded-full text-xs font-semibold">{{ patient.assData.dxUtama.split('-')[0] }}</span>
+            <span *ngIf="!patient.assData?.dxUtama" class="text-slate-400 italic text-xs">Selesai diperiksa</span>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <span class="bg-green-100 text-green-700 px-3 py-1 rounded-full text-xs font-bold border border-green-200">Selesai</span>
+          </td>
+          <td class="px-6 py-4 text-center">
+            <button (click)="openPatient(patient)" class="bg-white border border-slate-300 text-slate-700 hover:bg-primary/5 hover:text-primary hover:border-primary px-4 py-2 rounded-lg text-xs font-semibold transition-all shadow-sm">
+              Lihat Detail
+            </button>
+          </td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  
+  <dialog id="detail_patient_modal" class="modal">
+    <div class="modal-box bg-white max-w-4xl rounded-2xl p-0 overflow-hidden shadow-2xl relative">
+      <div class="bg-primary px-6 py-4 flex justify-between items-center text-white">
+        <h3 class="font-bold text-lg">Detail Rekam Medis (SOAP)</h3>
+        <button (click)="closeDetailModal()" class="text-white/70 hover:text-white transition-colors bg-white/10 hover:bg-white/20 p-1.5 rounded-lg">
+          <lucide-icon name="x" [size]="18"></lucide-icon>
+        </button>
+      </div>
+
+      <div class="p-6 overflow-y-auto max-h-[75vh] text-sm text-slate-700 space-y-7" *ngIf="selectedPatient">
+        
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+          <div>
+            <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3">Identitas Pasien</h4>
+            <div class="grid grid-cols-1 gap-y-2">
+              <div><span class="text-slate-500 inline-block w-32">Nama Lengkap</span> <span class="font-semibold text-slate-800">: {{ selectedPatient.name }}</span></div>
+              <div><span class="text-slate-500 inline-block w-32">No. Registrasi</span> <span class="font-semibold text-slate-800">: #{{ getPatientId6(selectedPatient) }}</span></div>
+              <div><span class="text-slate-500 inline-block w-32">Usia / Kelamin</span> <span class="font-semibold text-slate-800">: {{ selectedPatient.patientData?.usia || '-' }} thn / {{ selectedPatient.patientData?.jenisKelamin === 'L' ? 'Laki-laki' : 'Perempuan' }}</span></div>
+            </div>
+          </div>
+          <div>
+            <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-3">Tanda Vital (Triage)</h4>
+            <div class="grid grid-cols-2 gap-4 bg-slate-50 p-4 rounded-lg border border-slate-100">
+              <div><span class="text-slate-500 block mb-1 text-xs">Tekanan Darah</span> <span class="font-bold text-slate-800 text-base">{{ selectedPatient.patientData?.tekananDarah || '-' }} <span class="font-normal text-xs text-slate-500">mmHg</span></span></div>
+              <div><span class="text-slate-500 block mb-1 text-xs">Suhu Tubuh</span> <span class="font-bold text-slate-800 text-base">{{ selectedPatient.patientData?.suhuBadan || '-' }} <span class="font-normal text-xs text-slate-500">°C</span></span></div>
+            </div>
+          </div>
+        </div>
+
+        <div>
+          <h4 class="font-bold text-slate-800 border-b border-slate-200 pb-2 mb-4 uppercase tracking-wide text-sm flex items-center gap-2">
+            Catatan Rekam Medis (SOAP)
+          </h4>
+
+          <div *ngIf="selectedPatient.subjData || selectedPatient.objData" class="space-y-5">
+            
+            <div *ngIf="selectedPatient.subjData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <div class="bg-[#38bfa8]/10 px-4 py-2.5 border-b border-[#38bfa8]/20 flex items-center gap-2">
+                <span class="w-6 h-6 rounded bg-[#38bfa8] text-white flex items-center justify-center font-bold text-xs">S</span>
+                <span class="font-bold text-[#38bfa8] text-sm">SUBJEKTIF (Keluhan)</span>
+              </div>
+              <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-y-3 gap-x-6 text-sm">
+                <div *ngIf="selectedPatient.subjData.keluhanUtama"><span class="text-slate-500 block text-xs mb-0.5">Keluhan Utama:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.keluhanUtama}}</span></div>
+                <div *ngIf="selectedPatient.subjData.durasi"><span class="text-slate-500 block text-xs mb-0.5">Durasi:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.durasi}}</span></div>
+                <div *ngIf="selectedPatient.subjData.lokasiKeluhan"><span class="text-slate-500 block text-xs mb-0.5">Lokasi:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.lokasiKeluhan}}</span></div>
+                <div *ngIf="selectedPatient.subjData.keparahan"><span class="text-slate-500 block text-xs mb-0.5">Keparahan:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.keparahan}}</span></div>
+                <div *ngIf="selectedPatient.subjData.faktor"><span class="text-slate-500 block text-xs mb-0.5">Faktor/Riwayat:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.faktor}}</span></div>
+                <div *ngIf="selectedPatient.subjData.gejala"><span class="text-slate-500 block text-xs mb-0.5">Gejala Penyerta:</span> <span class="font-medium text-slate-800">{{selectedPatient.subjData.gejala}}</span></div>
+              </div>
+            </div>
+
+            <div *ngIf="selectedPatient.objData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <div class="bg-[#3bbac7]/10 px-4 py-2.5 border-b border-[#3bbac7]/20 flex items-center gap-2">
+                <span class="w-6 h-6 rounded bg-[#3bbac7] text-white flex items-center justify-center font-bold text-xs">O</span>
+                <span class="font-bold text-[#3bbac7] text-sm">OBJEKTIF (Pemeriksaan)</span>
+              </div>
+              <div class="p-4">
+                <div class="flex flex-wrap gap-4 mb-4">
+                  <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">TD:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.td || '-'}} mmHg</span></span>
+                  <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">Nadi:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.nadi || '-'}} x/m</span></span>
+                  <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">Suhu:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.suhu || '-'}} °C</span></span>
+                  <span class="bg-slate-50 border border-slate-200 px-3 py-1.5 rounded-lg text-xs"><span class="text-slate-400">SpO2:</span> <span class="font-bold text-slate-700">{{selectedPatient.objData.spo2 || '-'}} %</span></span>
+                </div>
+                <div class="grid grid-cols-2 gap-y-3 gap-x-4 text-sm">
+                  <div><span class="text-slate-500 block text-xs mb-0.5">Kesadaran / Keadaan Sakit:</span> <span class="font-medium text-slate-800">{{selectedPatient.objData.kesadaran}} — {{selectedPatient.objData.keadaanSakit}}</span></div>
+                  <div><span class="text-slate-500 block text-xs mb-0.5">Tanda Visual:</span> <span class="font-medium text-slate-800">{{selectedPatient.objData.tandaVisual || '-'}}</span></div>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="selectedPatient.assData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <div class="bg-[#fc8822]/10 px-4 py-2.5 border-b border-[#fc8822]/20 flex items-center gap-2">
+                <span class="w-6 h-6 rounded bg-[#fc8822] text-white flex items-center justify-center font-bold text-xs">A</span>
+                <span class="font-bold text-[#fc8822] text-sm">ASSESSMENT (Diagnosis)</span>
+              </div>
+              <div class="p-4 grid grid-cols-1 md:grid-cols-2 gap-y-4 gap-x-6 text-sm">
+                <div>
+                  <span class="text-slate-500 block text-xs mb-1">Diagnosis Utama (ICD-10):</span> 
+                  <span class="font-bold text-slate-800 bg-[#fc8822]/10 px-2 py-1 rounded border border-[#fc8822]/20 inline-block">{{selectedPatient.assData.dxUtama || 'Belum ditegakkan'}}</span>
+                </div>
+                <div>
+                  <span class="text-slate-500 block text-xs mb-1">Diagnosis Sekunder / Banding:</span> 
+                  <span class="font-medium text-slate-800 block text-xs">{{selectedPatient.assData.dxSekunder || '-'}}</span>
+                  <span class="font-medium text-slate-800 block text-xs mt-0.5">{{selectedPatient.assData.dxBanding || '-'}}</span>
+                </div>
+                <div class="md:col-span-2" *ngIf="selectedPatient.assData.analisis">
+                  <span class="text-slate-500 block text-xs mb-1">Analisis Kasus Dokter:</span> 
+                  <p class="font-medium text-slate-700 bg-slate-50 p-3 rounded-lg border border-slate-100 italic">{{selectedPatient.assData.analisis}}</p>
+                </div>
+              </div>
+            </div>
+
+            <div *ngIf="selectedPatient.planData" class="bg-white border border-slate-200 rounded-xl overflow-hidden shadow-sm">
+              <div class="bg-[#b327fc]/10 px-4 py-2.5 border-b border-[#b327fc]/20 flex items-center gap-2">
+                <span class="w-6 h-6 rounded bg-[#b327fc] text-white flex items-center justify-center font-bold text-xs">P</span>
+                <span class="font-bold text-[#b327fc] text-sm">PLAN (Tindak Lanjut & Resep)</span>
+              </div>
+              <div class="p-4 space-y-4 text-sm">
+                <div>
+                  <span class="text-slate-500 block text-xs mb-1">Instruksi Tindak Lanjut:</span> 
+                  <span class="font-bold text-slate-800 bg-slate-100 px-3 py-1.5 rounded-lg border border-slate-200 inline-block">
+                    {{selectedPatient.planData.tindakLanjut || '-'}}
+                    <span *ngIf="selectedPatient.planData.rujukTujuan"> ({{selectedPatient.planData.rujukTujuan}})</span>
+                    <span *ngIf="selectedPatient.planData.rawatAlasan"> ({{selectedPatient.planData.rawatAlasan}})</span>
+                  </span>
+                </div>
+                
+                <div *ngIf="selectedPatient.planData.obat && selectedPatient.planData.obat.length > 0 && selectedPatient.planData.obat[0].nama">
+                  <span class="text-slate-500 block text-xs mb-1.5">Resep Obat:</span> 
+                  <div class="border border-slate-200 rounded-lg overflow-hidden">
+                    <table class="w-full text-left text-xs">
+                      <thead class="bg-slate-50 text-slate-500">
+                        <tr><th class="px-3 py-2 font-medium">Nama Obat</th><th class="px-3 py-2 font-medium">Dosis</th><th class="px-3 py-2 font-medium">Frekuensi</th><th class="px-3 py-2 font-medium">Durasi</th></tr>
+                      </thead>
+                      <tbody class="divide-y divide-slate-100">
+                        <tr *ngFor="let o of selectedPatient.planData.obat">
+                          <td class="px-3 py-2 font-bold text-slate-700" *ngIf="o.nama">{{o.nama}}</td>
+                          <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.dosis || '-'}}</td>
+                          <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.frekuensi || '-'}}</td>
+                          <td class="px-3 py-2 text-slate-600" *ngIf="o.nama">{{o.durasi || '-'}}</td>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          
+          <div *ngIf="!selectedPatient.subjData && selectedPatient.doctorNotes" class="bg-green-50/50 p-4 rounded-xl border border-green-100">
+            <p class="whitespace-pre-line leading-relaxed text-justify text-slate-800">{{ selectedPatient.doctorNotes }}</p>
+          </div>
+
+          <div *ngIf="!selectedPatient.subjData && !selectedPatient.doctorNotes" class="bg-slate-50 p-6 text-center rounded-xl border border-slate-100 text-slate-400 italic">
+            Belum ada data rekam medis yang dicatat oleh dokter.
+          </div>
+
+        </div>
+      </div>
+
+      <div class="bg-slate-50 px-6 py-4 border-t border-slate-200 flex justify-end">
+        <button (click)="closeDetailModal()" class="bg-white border border-slate-300 text-slate-700 hover:bg-slate-100 px-6 py-2 rounded-lg font-semibold transition-all shadow-sm">Tutup Laporan</button>
+      </div>
+    </div>
+    
+  </dialog>
+
 </div>

@@ -5,7 +5,7 @@ import { ActivatedRoute, Router } from '@angular/router';
 import { PatientService } from '../../../services/patient.service';
 import { searchICD10, formatICD10 } from '../../../data/icd10-database';
 import { getEducationForDiagnosis, getDefaultTindakLanjut } from '../../../data/clinical-education';
-import { LucideAngularModule, Edit, Brain, AlertCircle, FileCheck, Plus, Check, ArrowLeft, Printer, Save, Search } from 'lucide-angular';
+import { LucideAngularModule } from 'lucide-angular';
 
 @Component({
   selector: 'app-examination',
@@ -25,7 +25,6 @@ export class ExaminationComponent implements OnInit {
   patient: any = null;
   today = new Date().toLocaleDateString('id-ID');
 
-  // Track save status for each tab
   savedTabs: Record<string, boolean> = { s: false, o: false, a: false, p: false };
 
   // S: Subjektif
@@ -55,7 +54,9 @@ export class ExaminationComponent implements OnInit {
     rawatAlasan: '',
   };
 
-  // A: ICD-10 search — dictionary-based for dynamic template access
+  // Variabel untuk menampung teks edukasi manual
+  newEdukasi: string = '';
+
   icdSearches: Record<string, string> = { searchUtama: '', searchSekunder: '', searchBanding: '' };
   icdShowStates: Record<string, boolean> = { showUtama: false, showSekunder: false, showBanding: false };
   icdResults: Record<string, any[]> = { searchUtama: [], searchSekunder: [], searchBanding: [] };
@@ -89,13 +90,20 @@ export class ExaminationComponent implements OnInit {
     this.patient = this.patientService.getPatientById(id);
     if (!this.patient) return;
 
+    if (this.patient.subjData) {
+      this.subjData = this.patient.subjData;
+      this.objData = this.patient.objData;
+      this.assData = this.patient.assData;
+      this.planData = this.patient.planData;
+      return; 
+    }
+
     const pd = this.patient.patientData || {};
     const summary = this.patient.summary || {};
     const diagnoses = summary.diagnoses || [];
     const rasaFields = summary.rasaFields || {};
     const gejalaFromChat = (this.patient.messages || []).filter((m: any) => m.role === 'user').map((m: any) => m.text).join(', ');
 
-    // S Auto-fill
     this.subjData = {
       keluhanUtama: rasaFields.keluhan_utama || pd.keluhan_utama || gejalaFromChat || 'Tidak ada data',
       durasi: rasaFields.durasi || pd.durasi || 'Tidak diketahui',
@@ -107,11 +115,9 @@ export class ExaminationComponent implements OnInit {
       gejala: rasaFields.gejala_penyerta || gejalaFromChat || pd.keluhan_utama || '',
     };
 
-    // O Auto-fill
     this.objData = { ...this.objData, td: pd.tekananDarah || '', suhu: pd.suhuBadan || '',
       statusGizi: pd.beratBadan && pd.tinggiBadan ? `Baik (BB: ${pd.beratBadan}kg, TB: ${pd.tinggiBadan}cm)` : '' };
 
-    // A Auto-fill
     if (diagnoses.length > 0) {
       this.assData = { ...this.assData,
         dxUtama: `${diagnoses[0].icd} - ${diagnoses[0].name}`,
@@ -119,7 +125,6 @@ export class ExaminationComponent implements OnInit {
         analisis: summary.resumeMedis || '' };
     }
 
-    // P Auto-fill
     if (diagnoses.length > 0) {
       const topDx = diagnoses[0].name;
       const education = getEducationForDiagnosis(topDx);
@@ -140,8 +145,6 @@ export class ExaminationComponent implements OnInit {
 
   getActiveTab() { return this.tabs.find(t => t.id === this.activeTab)!; }
 
-  // ICD-10 search (template uses icdResults dictionary directly)
-
   selectICD10(field: string, entry: any, searchField: string, showField: string) {
     this.assData[field] = formatICD10(entry);
     this.icdSearches[searchField] = '';
@@ -153,7 +156,6 @@ export class ExaminationComponent implements OnInit {
     this.icdSearches[searchField] = '';
   }
 
-  // Template helper methods for ICD-10 dropdowns
   updateIcdResults(searchKey: string) {
     const modelMap: Record<string, string> = { searchUtama: 'dxUtama', searchSekunder: 'dxSekunder', searchBanding: 'dxBanding' };
     const query = this.icdSearches[searchKey] || this.assData[modelMap[searchKey]] || '';
@@ -170,7 +172,6 @@ export class ExaminationComponent implements OnInit {
     this.icdShowStates[showKey] = false;
   }
 
-  // Subjective fields for template iteration
   subjFieldsConfig = [
     { icon: '⚠️', label: 'KELUHAN UTAMA', key: 'keluhanUtama' as keyof typeof this.subjData },
     { icon: '⏱', label: 'DURASI', key: 'durasi' as keyof typeof this.subjData },
@@ -182,7 +183,26 @@ export class ExaminationComponent implements OnInit {
 
   addObat() { this.planData.obat.push({ nama: '', dosis: '', frekuensi: '', durasi: '' }); }
   removeObat(i: number) { this.planData.obat.splice(i, 1); }
-  toggleEdukasi(i: number) { this.planData.edukasiChecked[i] = !this.planData.edukasiChecked[i]; }
+  
+  // Fitur Checklist Edukasi
+  toggleEdukasi(i: number) { 
+    this.planData.edukasiChecked[i] = !this.planData.edukasiChecked[i]; 
+  }
+
+  // Fitur Tambah Edukasi Manual
+  addEdukasi() {
+    if (this.newEdukasi.trim()) {
+      this.planData.edukasiItems.push(this.newEdukasi.trim());
+      this.planData.edukasiChecked.push(true); // Otomatis tercentang
+      this.newEdukasi = ''; // Kosongkan input
+    }
+  }
+
+  // Fitur Hapus Edukasi
+  removeEdukasi(i: number) {
+    this.planData.edukasiItems.splice(i, 1);
+    this.planData.edukasiChecked.splice(i, 1);
+  }
 
   getEducationSource(): string {
     if (this.diagnoses[0]) {
@@ -190,10 +210,6 @@ export class ExaminationComponent implements OnInit {
       return edu?.sumber || 'PPK Kemenkes RI';
     }
     return 'PPK Kemenkes RI';
-  }
-
-  getEduSource(): string {
-    return this.getEducationSource();
   }
 
   handlePartialSave() {
@@ -204,7 +220,6 @@ export class ExaminationComponent implements OnInit {
 
   handleComplete() {
     const unsavedTabs = this.tabs.filter(t => !this.savedTabs[t.id]);
-    
     if (unsavedTabs.length > 0) {
       const tabNames = unsavedTabs.map(t => t.label).join(', ');
       alert(`Tidak dapat menyelesaikan pemeriksaan.\nBagian berikut belum disimpan: ${tabNames}\n\nMohon buka setiap bagian dan klik "Simpan" terlebih dahulu.`);
@@ -212,8 +227,15 @@ export class ExaminationComponent implements OnInit {
     }
 
     const id = this.route.snapshot.paramMap.get('id') || '';
-    this.patientService.completePatient(id);
-    alert('Seluruh data rekam medis SOAP telah disimpan dan pemeriksaan selesai.');
+    const currentSoapData = {
+      subjData: this.subjData,
+      objData: this.objData,
+      assData: this.assData,
+      planData: this.planData
+    };
+
+    this.patientService.saveSOAPAndComplete(id, currentSoapData);
+    alert('Pemeriksaan selesai! Seluruh data rekam medis (SOAP) berhasil disimpan.');
     this.router.navigate(['/doctor']);
   }
 }

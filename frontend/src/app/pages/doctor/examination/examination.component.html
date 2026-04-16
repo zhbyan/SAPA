@@ -1,10 +1,8 @@
-<!-- Patient Examination — from React PatientExamination.jsx Tailwind classes -->
 <div *ngIf="!patient" class="flex justify-center items-center h-[calc(100vh-64px)]">
   <p class="text-slate-500">Memuat data pasien...</p>
 </div>
 
 <div *ngIf="patient" class="h-[calc(100vh-64px)] flex flex-col p-6 bg-slate-50 overflow-y-auto">
-  <!-- Patient Info Header -->
   <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-6 flex flex-wrap items-center justify-between gap-6 mb-6">
     <div class="flex items-center gap-4">
       <div class="w-14 h-14 rounded-full bg-primary text-white flex items-center justify-center text-lg font-bold font-mono">{{ patient.id?.toString().slice(-2) }}</div>
@@ -30,9 +28,7 @@
   </div>
 
   <div class="flex flex-col lg:flex-row gap-6 flex-1 min-h-0">
-    <!-- LEFT: SOAP -->
     <div class="flex-1 flex flex-col min-h-0 bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-      <!-- Tab Selector -->
       <div class="grid grid-cols-4 gap-4 p-4 bg-slate-50 border-b border-slate-100">
         <button *ngFor="let tab of tabs" (click)="activeTab = tab.id"
           class="relative flex flex-col items-center justify-center p-3 rounded-xl border text-center transition-all"
@@ -50,9 +46,7 @@
         </button>
       </div>
 
-      <!-- Content -->
       <div class="flex-1 overflow-y-auto">
-        <!-- Section Header -->
         <div class="flex items-center justify-between p-6 pb-4 border-b border-slate-100 sticky top-0 bg-white z-10">
           <div class="flex items-center gap-3">
             <div class="w-8 h-8 rounded-md text-white flex items-center justify-center font-bold text-lg" [style.backgroundColor]="tabColor(activeTab)">{{ getActiveTab().letter }}</div>
@@ -62,7 +56,6 @@
         
         <div class="p-6 pt-6">
 
-        <!-- ═══ SUBJEKTIF (S) ═══ -->
         <div *ngIf="activeTab === 's'" class="space-y-6">
           <div *ngFor="let field of subjFieldsConfig">
             <div class="flex gap-2 items-center text-sm font-bold text-slate-600 uppercase mb-2 tracking-wide">
@@ -74,7 +67,6 @@
             </div>
           </div>
 
-          <!-- AI Diagnosis Preview -->
           <div *ngIf="diagnoses.length > 0">
             <div class="flex gap-2 items-center text-sm font-bold text-slate-600 uppercase mb-2 tracking-wide">
               <lucide-icon name="brain" [size]="14" style="color: #38bfa8"></lucide-icon>
@@ -95,7 +87,6 @@
           </div>
         </div>
 
-        <!-- ═══ OBJEKTIF (O) ═══ -->
         <div *ngIf="activeTab === 'o'" class="space-y-8">
           <div class="grid grid-cols-5 gap-3">
             <div *ngFor="let v of vitalFields" class="border border-slate-200 p-3 rounded-xl">
@@ -107,7 +98,6 @@
             </div>
           </div>
 
-          <!-- Keadaan Umum -->
           <div>
             <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #3bbac7">
               <div class="w-5 h-5 rounded flex items-center justify-center" style="background-color: rgba(59,186,199,0.12)"><span class="w-2 h-2 rounded-full" style="background-color: #3bbac7"></span></div>
@@ -139,7 +129,6 @@
             </div>
           </div>
 
-          <!-- Lab Results -->
           <div>
             <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #3bbac7">
               <div class="w-5 h-5 rounded flex items-center justify-center" style="background-color: rgba(59,186,199,0.12)"><span class="w-2 h-2 rounded-full" style="background-color: #3bbac7"></span></div>
@@ -169,7 +158,6 @@
             </div>
           </div>
 
-          <!-- Rekomendasi Tindakan -->
           <div *ngIf="diagnoses.length > 0">
             <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #3bbac7">
               <div class="w-5 h-5 rounded flex items-center justify-center" style="background-color: rgba(59,186,199,0.12)"><span class="w-2 h-2 rounded-full" style="background-color: #3bbac7"></span></div>
@@ -181,9 +169,7 @@
           </div>
         </div>
 
-        <!-- ═══ ASSESSMENT (A) ═══ -->
         <div *ngIf="activeTab === 'a'" class="space-y-6">
-          <!-- ICD-10 Dropdowns -->
           <div *ngFor="let icd of [
             {label: 'Diagnosis Utama (ICD-10)', model: 'dxUtama', search: 'searchUtama', show: 'showUtama', accent: '#fc8822'},
             {label: 'Diagnosis Sekunder', model: 'dxSekunder', search: 'searchSekunder', show: 'showSekunder', accent: '#3bbac7'},
@@ -233,14 +219,12 @@
           </div>
         </div>
 
-        <!-- ═══ PLAN (P) ═══ -->
         <div *ngIf="activeTab === 'p'" class="space-y-6">
           <div>
             <p class="text-xs font-bold text-slate-500 uppercase mb-1">Diagnosis Utama</p>
             <p class="text-sm font-semibold text-slate-800">{{ assData['dxUtama'] || 'Belum ada diagnosis' }}</p>
           </div>
 
-          <!-- Resep Obat -->
           <div>
             <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #b327fc">
               <lucide-icon name="file-text" [size]="14" style="color: #b327fc"></lucide-icon>
@@ -271,24 +255,35 @@
             </div>
           </div>
 
-          <!-- Edukasi -->
           <div>
             <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #b327fc">
               <lucide-icon name="alert-circle" [size]="14" style="color: #b327fc"></lucide-icon>
               EDUKASI & INSTRUKSI
             </div>
+            
             <div class="space-y-2 pl-7">
-              <label *ngFor="let item of planData.edukasiItems; let i = index" class="flex items-start gap-2 text-sm cursor-pointer leading-relaxed">
-                <input type="checkbox" class="accent-[#b327fc] rounded mt-0.5" [checked]="planData.edukasiChecked[i]" (change)="toggleEdukasi(i)" />
-                <span class="text-slate-700">{{ item }}</span>
-              </label>
-              <p *ngIf="planData.edukasiItems.length === 0" class="text-sm text-slate-400 italic">Tidak ada rekomendasi edukasi untuk diagnosis ini.</p>
-              <input type="text" class="w-full border-b border-slate-200 py-1 text-sm outline-none mt-2 placeholder-slate-400" placeholder="+ Tambah instruksi lain..." />
+              <div *ngFor="let item of planData.edukasiItems; let i = index" class="flex items-start justify-between gap-2 group">
+                <label class="flex items-start gap-2 text-sm cursor-pointer leading-relaxed flex-1">
+                  <input type="checkbox" class="accent-[#b327fc] rounded mt-0.5" [checked]="planData.edukasiChecked[i]" (change)="toggleEdukasi(i)" />
+                  <span class="text-slate-700" [class.line-through]="!planData.edukasiChecked[i]" [class.text-slate-400]="!planData.edukasiChecked[i]">{{ item }}</span>
+                </label>
+                <button (click)="removeEdukasi(i)" class="text-slate-300 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity font-bold">✕</button>
+              </div>
+              
+              <p *ngIf="planData.edukasiItems.length === 0" class="text-sm text-slate-400 italic mb-2">Tidak ada rekomendasi edukasi untuk diagnosis ini.</p>
+              
+              <div class="flex items-center gap-2 mt-4 pt-3 border-t border-slate-100">
+                <input type="text" [(ngModel)]="newEdukasi" (keyup.enter)="addEdukasi()" class="flex-1 border-b border-slate-200 py-1.5 text-sm outline-none placeholder-slate-400 focus:border-[#b327fc] transition-colors bg-transparent" placeholder="Ketik instruksi tambahan, lalu tekan enter/tambah..." />
+                
+                <button (click)="addEdukasi()" [disabled]="!newEdukasi.trim()" class="bg-slate-100 hover:bg-[#b327fc]/10 text-slate-600 hover:text-[#b327fc] disabled:opacity-50 disabled:cursor-not-allowed px-3 py-1.5 rounded-lg text-xs font-semibold transition-colors flex items-center gap-1">
+                  ➕ Tambah
+                </button>
+              </div>
             </div>
-            <p *ngIf="diagnoses.length > 0" class="text-[10px] text-[#b327fc] mt-2 ml-7 italic">Sumber: {{ getEducationSource() }}</p>
+            
+            <p *ngIf="diagnoses.length > 0" class="text-[10px] text-[#b327fc] mt-3 ml-7 italic">Sumber Default: {{ getEducationSource() }}</p>
           </div>
 
-          <!-- Tindak Lanjut -->
           <div>
             <div class="flex gap-2 items-center text-sm font-bold uppercase mb-4 tracking-wide" style="color: #b327fc">
               <lucide-icon name="chevron-right" [size]="14" style="color: #b327fc"></lucide-icon>
@@ -306,7 +301,6 @@
         </div>
       </div>
 
-      <!-- Bottom Action Bar -->
       <div class="p-4 border-t border-slate-200 bg-slate-50 flex justify-between items-center">
         <div class="flex gap-3">
           <button class="px-4 py-2 border border-slate-200 rounded-lg text-sm font-medium hover:bg-white flex items-center gap-2 text-slate-600"><lucide-icon name="printer" [size]="16"></lucide-icon> Cetak</button>
@@ -318,7 +312,6 @@
       </div>
     </div>
 
-    <!-- RIGHT: Riwayat Medis Sidebar -->
     <div class="w-full lg:w-72 flex flex-col gap-6">
       <div class="bg-white rounded-xl shadow-sm border border-slate-200 p-5 flex-1 max-h-[calc(100vh-200px)] overflow-y-auto">
         <h3 class="text-lg font-bold text-slate-800 mb-5 flex items-center gap-2">

@@ -10,6 +10,8 @@ export const routes: Routes = [
     data: { role: 'nakes' },
     children: [
       { path: '', loadComponent: () => import('./pages/nakes/triage/triage.component').then(m => m.TriageComponent) },
+      // INI KUNCI UTAMANYA: Mengarahkan path "riwayat" ke file yang kita buat di Langkah 3
+      { path: 'riwayat', loadComponent: () => import('./pages/nakes/riwayat/riwayat.component').then(m => m.RiwayatComponent) }
     ]
   },
   {

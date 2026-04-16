@@ -2,7 +2,7 @@ import { Component } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { RouterOutlet, Router, RouterLink } from '@angular/router';
 import { AuthService } from '../../services/auth.service';
-import { LucideAngularModule, Home, ClipboardList, HelpCircle, Settings, LogOut, Bell, Stethoscope } from 'lucide-angular';
+import { LucideAngularModule, Home, ClipboardList, HelpCircle, Settings, LogOut, Bell, Stethoscope, User } from 'lucide-angular';
 
 @Component({
   selector: 'app-nurse-layout',
@@ -12,12 +12,31 @@ import { LucideAngularModule, Home, ClipboardList, HelpCircle, Settings, LogOut,
   styleUrl: './nurse-layout.component.css'
 })
 export class NurseLayoutComponent {
-  readonly icons = { Home, ClipboardList, HelpCircle, Settings, LogOut, Bell, Stethoscope };
-  menuGroups: Record<string, { label: string; icon: string; path: string }[]> = {
-    'MENU': [{ label: 'Dasbor', icon: 'home', path: '/' }],
-    'ADMINISTRASI': [{ label: 'Pendaftaran Pasien', icon: 'clipboard-list', path: '/' }, { label: 'Bantuan', icon: 'help-circle', path: '/' }],
-    'UMUM': [{ label: 'Pengaturan', icon: 'settings', path: '/' }, { label: 'Bantuan', icon: 'help-circle', path: '/' }],
-  };
+  readonly icons = { Home, ClipboardList, HelpCircle, Settings, LogOut, Bell, Stethoscope, User };
+  
+  menuGroups = [
+    {
+      title: 'MENU',
+      items: [
+        { label: 'Dasbor', icon: 'home', path: '/' }
+      ]
+    },
+    {
+      title: 'ADMINISTRASI',
+      items: [
+        { label: 'Pendaftaran Pasien', icon: 'clipboard-list', path: '/' },
+        // PENTING: Tombol ini sekarang mengarah ke halaman baru "/riwayat"
+        { label: 'Riwayat Pasien', icon: 'user', path: '/riwayat' } 
+      ]
+    },
+    {
+      title: 'UMUM',
+      items: [
+        { label: 'Pengaturan', icon: 'settings', path: '/' },
+        { label: 'Bantuan', icon: 'help-circle', path: '/' }
+      ]
+    }
+  ];
 
   constructor(public auth: AuthService, public router: Router) {}
 
@@ -27,5 +46,9 @@ export class NurseLayoutComponent {
 
   logout() { this.auth.logout(); }
 
-  objectEntries(obj: Record<string, any[]>): [string, any[]][] { return Object.entries(obj); }
+  handleMenuClick(item: any) {
+    if (item.path) {
+      this.router.navigate([item.path]);
+    }
+  }
 }

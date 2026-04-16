@@ -1,17 +1,22 @@
-<!-- Triage Page — converted from React TriagePage.jsx Tailwind classes -->
 <div class="animate-fadeIn">
-  <!-- Tab Navigation -->
   <div class="flex border-b border-gray-200 mb-6">
-    <button *ngFor="let tab of tabs; let i = index" (click)="activeTab = i"
-      [class]="'flex-1 py-3 text-sm font-semibold text-center transition-all relative ' + (activeTab === i ? 'text-primary' : 'text-gray-400 hover:text-gray-600')">
-      {{ tab }}
+    <button *ngFor="let tab of tabs; let i = index" 
+      (click)="selectTab(i)"
+      [disabled]="i === 2 && !summary"
+      [class]="'flex-1 py-3 text-sm font-semibold text-center transition-all relative ' + 
+        (activeTab === i ? 'text-primary' : 
+          (i === 2 && !summary ? 'text-gray-300 cursor-not-allowed bg-gray-50/50' : 'text-gray-400 hover:text-gray-600'))">
+      
+      <div class="flex items-center justify-center gap-2">
+        {{ tab }}
+        <lucide-icon *ngIf="i === 2 && !summary" name="lock" [size]="14" class="text-gray-300"></lucide-icon>
+      </div>
+
       <span *ngIf="activeTab === i" class="absolute bottom-0 left-0 right-0 h-[3px] bg-primary rounded-t-full"></span>
     </button>
   </div>
 
-  <!-- ═══ TAB 1: Data Pasien ═══ -->
   <div *ngIf="activeTab === 0" class="bg-white rounded-2xl border border-gray-200 p-6 animate-slideUp">
-    <!-- Row 1 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div>
         <label [class]="'block text-xs font-medium mb-1.5 ' + (validationErrors['nik'] ? 'text-red-500' : 'text-gray-500')">
@@ -36,7 +41,6 @@
       </div>
     </div>
 
-    <!-- Row 2 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div class="md:col-span-2">
         <label [class]="'block text-xs font-medium mb-1.5 ' + (validationErrors['alamat'] ? 'text-red-500' : 'text-gray-500')">Alamat</label>
@@ -48,7 +52,6 @@
       </div>
     </div>
 
-    <!-- Row 3 -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4">
       <div *ngFor="let f of [['kecamatan','Kecamatan'],['kabupaten','Kabupaten/Kota'],['provinsi','Provinsi'],['kodePos','Kode Pos']]">
         <label class="block text-xs font-medium text-gray-500 mb-1.5">{{ f[1] }}</label>
@@ -56,7 +59,6 @@
       </div>
     </div>
 
-    <!-- Row 4 -->
     <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
       <div>
         <label class="block text-xs font-medium text-gray-500 mb-1.5">Nomor Handphone Aktif</label>
@@ -68,7 +70,6 @@
       </div>
     </div>
 
-    <!-- Row 5: Vitals -->
     <div class="grid grid-cols-2 md:grid-cols-5 gap-4 mb-6">
       <div *ngFor="let v of [['beratBadan','Berat Badan','kg'],['tinggiBadan','Tinggi Badan','cm'],['suhuBadan','Suhu Badan','°C'],['tekananDarah','Tekanan Darah','mmHg'],['usia','Usia','tahun']]">
         <label class="block text-xs font-medium text-gray-500 mb-1.5">{{ v[1] }}</label>
@@ -86,9 +87,7 @@
     </div>
   </div>
 
-  <!-- ═══ TAB 2: Isi Keluhan (Chat) ═══ -->
   <div *ngIf="activeTab === 1" class="animate-slideUp">
-    <!-- Info Bar + Progress -->
     <div class="bg-white rounded-2xl border border-gray-200 p-4 mb-4">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-4">
@@ -108,7 +107,6 @@
         </button>
       </div>
 
-      <!-- Progress -->
       <div *ngIf="fieldStatus" class="mt-3 pt-3 border-t border-gray-100">
         <div class="flex items-center justify-between mb-1.5">
           <span class="text-xs font-semibold text-gray-500">Data Anamnesis: {{ fieldStatus.progress || '0/7' }}</span>
@@ -130,7 +128,6 @@
       </div>
     </div>
 
-    <!-- Chat Area -->
     <div class="bg-gradient-to-b from-green-50/50 to-white rounded-2xl border border-gray-200 flex flex-col" style="height: calc(100vh - 300px)">
       <div class="flex-1 overflow-y-auto p-6 space-y-4">
         <div *ngIf="messages.length === 0" class="flex flex-col items-center justify-center h-full text-center">
@@ -157,7 +154,6 @@
         <div #chatEnd></div>
       </div>
 
-      <!-- Input Bar -->
       <div class="p-4 border-t border-gray-100">
         <div class="flex items-center gap-3 bg-white border border-gray-200 rounded-full px-4 py-1 shadow-sm">
           <input type="text" [(ngModel)]="chatInput" (keydown)="onKeyPress($event)" placeholder="Message RASA..."
@@ -172,17 +168,16 @@
     </div>
   </div>
 
-  <!-- ═══ TAB 3: Ringkasan Pasien ═══ -->
   <div *ngIf="activeTab === 2" class="grid grid-cols-1 lg:grid-cols-3 gap-6 animate-slideUp">
-    <!-- Left -->
     <div class="lg:col-span-2 space-y-6">
       <div class="bg-white rounded-2xl border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
           <h3 class="text-lg font-bold text-gray-800">DATA PASIEN</h3>
-          <button class="flex items-center gap-1.5 text-sm text-gray-500 hover:text-gray-700 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors"><lucide-icon name="edit" [size]="14"></lucide-icon> Edit</button>
+          <button type="button" (click)="openEditVitalModal()" class="btn btn-outline btn-sm text-gray-500 border-gray-300 hover:bg-gray-50 hover:text-green-600 hover:border-green-500">
+            <i class="ph ph-pencil-simple"></i> Edit
+          </button>
         </div>
 
-        <!-- Vital Badges -->
         <div class="flex flex-wrap gap-3 mb-5">
           <span *ngIf="patientData['tekananDarah']" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">TD: {{ patientData['tekananDarah'] }} mmHg</span>
           <span *ngIf="patientData['suhuBadan']" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">Suhu: {{ patientData['suhuBadan'] }}°C</span>
@@ -190,18 +185,15 @@
           <span *ngIf="patientData['beratBadan']" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-50 border border-gray-200 rounded-full text-xs text-gray-700 font-medium">BB: {{ patientData['beratBadan'] }} kg</span>
         </div>
 
-        <!-- Resume Medis -->
         <div class="mb-5">
           <h4 class="text-sm font-semibold text-gray-700 mb-2 flex items-center gap-2"><lucide-icon name="file-text" [size]="16" class="text-primary"></lucide-icon> Resume Medis (ICD 10)</h4>
           <p class="text-sm text-gray-600 leading-relaxed">{{ summary?.resumeMedis || 'Belum ada data resume.' }}</p>
         </div>
 
-        <!-- ICD Tags -->
         <div *ngIf="summary?.icdTags" class="flex flex-wrap gap-2 mb-6">
           <span *ngFor="let tag of summary.icdTags" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-primary/10 text-primary text-xs font-semibold rounded-full">{{ tag.code }} – {{ tag.label }}</span>
         </div>
 
-        <!-- Diagnosis Awal -->
         <div *ngIf="summary?.diagnoses">
           <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"><lucide-icon name="search" [size]="16" class="text-primary"></lucide-icon> Diagnosis Awal</h4>
           <div class="space-y-2">
@@ -215,7 +207,6 @@
           </div>
         </div>
 
-        <!-- Penempatan -->
         <div class="mt-6 pt-6 border-t border-gray-100">
           <h4 class="text-sm font-semibold text-gray-700 mb-3 flex items-center gap-2"><lucide-icon name="file-check" [size]="16" class="text-primary"></lucide-icon> Penempatan Pasien & Tujuan</h4>
           <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
@@ -243,7 +234,6 @@
       </div>
     </div>
 
-    <!-- Right: Profil -->
     <div class="space-y-6">
       <div class="bg-white rounded-2xl border border-gray-200 p-6">
         <div class="flex items-center justify-between mb-4">
@@ -268,3 +258,39 @@
     </div>
   </div>
 </div>
+
+<dialog id="edit_vital_modal" class="modal">
+  <div class="modal-box bg-white max-w-2xl rounded-2xl p-6">
+    <h3 class="font-bold text-xl text-gray-800 border-b border-gray-100 pb-3 mb-5">Edit Data Tanda Vital</h3>
+
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Tekanan Darah (mmHg)</label>
+        <input type="text" [(ngModel)]="patientData['tekananDarah']" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="Contoh: 120/80" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Suhu Tubuh (°C)</label>
+        <input type="text" [(ngModel)]="patientData['suhuBadan']" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="36.5" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Tinggi Badan (cm)</label>
+        <input type="text" [(ngModel)]="patientData['tinggiBadan']" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="165" />
+      </div>
+
+      <div>
+        <label class="block text-xs font-medium text-gray-500 mb-1.5">Berat Badan (kg)</label>
+        <input type="text" [(ngModel)]="patientData['beratBadan']" class="w-full px-3 py-2.5 border border-gray-200 rounded-xl text-sm focus:ring-2 focus:ring-primary/20 focus:border-primary outline-none transition-all" placeholder="60" />
+      </div>
+    </div>
+
+    <div class="modal-action mt-8 border-t border-gray-100 pt-5 flex justify-end gap-3">
+      <button type="button" class="px-5 py-2.5 text-sm font-semibold text-gray-500 hover:bg-gray-50 rounded-xl transition-all" (click)="closeEditVitalModal()">Tutup</button>
+      <button type="button" class="bg-primary hover:bg-primary-dark text-white font-semibold py-2.5 px-6 rounded-xl transition-all shadow-lg shadow-primary/20" (click)="saveEditedVital()">
+        Simpan Perubahan
+      </button>
+    </div>
+  </div>
+  
+</dialog>

@@ -61,7 +61,26 @@ export class TriageComponent implements AfterViewChecked {
     return new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
   }
 
-  // Tab 1 → Tab 2
+  // ==========================================
+  // FUNGSI KONTROL NAVIGASI TAB
+  // ==========================================
+  selectTab(index: number) {
+    // 1. Blokir akses ke Tab 3 (Ringkasan) jika laporan belum dibuat
+    if (index === 2 && !this.summary) {
+      return; 
+    }
+    
+    // 2. Jika perawat mencoba melompat ke Tab 2 (Isi Keluhan) dari Tab 1,
+    // kita paksa lewat fungsi nextTab() agar validasi terpicu.
+    if (index === 1 && this.activeTab === 0) {
+      this.nextTab();
+      return;
+    }
+
+    this.activeTab = index;
+  }
+
+  // Tab 1 → Tab 2 (Validasi)
   async nextTab() {
     if (this.activeTab === 0) {
       const errors: Record<string, boolean> = {};
@@ -129,10 +148,19 @@ export class TriageComponent implements AfterViewChecked {
     }
   }
 
-  async generateReport() {
+  // ==========================================
+  // GENERATE LAPORAN AI
+  // ==========================================
+  async generateReport(preserveResume: boolean = false) {
     this.isSending = true;
+    const oldResume = this.summary?.resumeMedis; // Simpan resume medis lama
+
     try {
-      const complaintText = this.messages.filter(m => m.role === 'user').map(m => m.text).join('. ');
+      // Abaikan pesan otomatis sistem dari rangkuman keluhan
+      const complaintText = this.messages
+        .filter(m => m.role === 'user' && !m.text.startsWith('[UPDATE SISTEM]'))
+        .map(m => m.text).join('. ');
+        
       let mlDx: any[] = [];
       try {
         const mlRes: any = await this.http.post(`${this.apiUrl}/predict`, { text: complaintText }).toPromise();
@@ -149,7 +177,19 @@ export class TriageComponent implements AfterViewChecked {
         const chatRes: any = await this.http.post(`${this.apiUrl}/chat/generate-report`, { session_id: this.sessionId }).toPromise();
         const analysis = chatRes.analysis || {};
         rasaFields = chatRes.field_status?.required || {};
-        resumeMedis = analysis.resume_medis || chatRes.reply || '';
+        
+        // PENCEGAHAN [object Object] DAN PRESERVE TEKS:
+        if (preserveResume && oldResume) {
+          resumeMedis = oldResume; // Gunakan teks yang lama (jangan di-refresh)
+        } else {
+          // Pastikan data yang masuk benar-benar string, bukan object json
+          if (typeof analysis.resume_medis === 'string') {
+            resumeMedis = analysis.resume_medis;
+          } else if (typeof chatRes.reply === 'string') {
+            resumeMedis = chatRes.reply;
+          }
+        }
+
         rasaDiagnoses = (analysis.diagnoses || []).map((d: any) => ({
           name: d.name || '—', icd: d.icd10 || '—',
           score: d.probability === 'Tinggi' ? 75 : d.probability === 'Sedang' ? 50 : d.probability === 'Rendah' ? 25 : 0,
@@ -160,7 +200,7 @@ export class TriageComponent implements AfterViewChecked {
       const genderText = this.patientData['jenisKelamin'] === 'L' ? 'laki-laki' : 'perempuan';
 
       this.summary = {
-        resumeMedis: resumeMedis || `Pasien ${genderText} ${this.patientData['usia'] || '—'} tahun datang dengan keluhan: ${complaintText.substring(0, 200)}`,
+        resumeMedis: resumeMedis || (preserveResume && oldResume ? oldResume : `Pasien ${genderText} ${this.patientData['usia'] || '—'} tahun datang dengan keluhan: ${complaintText.substring(0, 200)}`),
         icdTags: finalDiagnoses.slice(0, 5).map((d: any) => ({ code: d.icd || '—', label: d.name || '—' })),
         diagnoses: finalDiagnoses,
         rasaFields: {
@@ -173,7 +213,10 @@ export class TriageComponent implements AfterViewChecked {
       this.activeTab = 2;
     } catch (err) {
       console.error('Generate report error:', err);
-      const complaintText = this.messages.filter(m => m.role === 'user').map(m => m.text).join('. ');
+      const complaintText = this.messages
+        .filter(m => m.role === 'user' && !m.text.startsWith('[UPDATE SISTEM]'))
+        .map(m => m.text).join('. ');
+        
       let fallbackDx: any[] = [];
       try {
         const mlRes: any = await this.http.post(`${this.apiUrl}/predict`, { text: complaintText }).toPromise();
@@ -183,8 +226,9 @@ export class TriageComponent implements AfterViewChecked {
         }));
       } catch { /* truly failed */ }
       const genderText = this.patientData['jenisKelamin'] === 'L' ? 'laki-laki' : 'perempuan';
+      
       this.summary = {
-        resumeMedis: `Pasien ${genderText} ${this.patientData['usia'] || '—'} tahun datang dengan keluhan: ${complaintText.substring(0, 200)}`,
+        resumeMedis: preserveResume && oldResume ? oldResume : `Pasien ${genderText} ${this.patientData['usia'] || '—'} tahun datang dengan keluhan: ${complaintText.substring(0, 200)}`,
         icdTags: fallbackDx.slice(0, 5).map((d: any) => ({ code: d.icd, label: d.name })),
         diagnoses: fallbackDx,
         rasaFields: { keluhan_utama: complaintText || '', durasi: '', lokasi_keluhan: '', keparahan: '', gejala_penyerta: '', riwayat_penyakit: '', riwayat_alergi: '' },
@@ -215,6 +259,56 @@ export class TriageComponent implements AfterViewChecked {
     this.router.navigate(['/']);
   }
 
+  // ==========================================
+  // FUNGSI UNTUK MODAL EDIT VITAL SIGN
+  // ==========================================
+  openEditVitalModal() {
+    const modal = document.getElementById('edit_vital_modal') as HTMLDialogElement;
+    if (modal) {
+      modal.showModal();
+    }
+  }
+
+  closeEditVitalModal() {
+    const modal = document.getElementById('edit_vital_modal') as HTMLDialogElement;
+    if (modal) {
+      modal.close();
+    }
+  }
+
+  async saveEditedVital() {
+    this.closeEditVitalModal();
+    
+    // Jika user mengedit di Tab 3 (Ringkasan sudah ada), kita trigger ulang AI-nya
+    if (this.summary) {
+      alert('Tanda vital berhasil disimpan! RASA sedang memperbarui prediksi Diagnosis...');
+      
+      this.isSending = true;
+      try {
+        // 1. Beri tahu AI (RASA) di latar belakang bahwa ada update data vital
+        const systemUpdateMsg = `[UPDATE SISTEM] Nakes baru saja mengubah data tanda vital pasien menjadi: Tekanan Darah ${this.patientData['tekananDarah'] || '-'} mmHg, Suhu ${this.patientData['suhuBadan'] || '-'} °C, Tinggi ${this.patientData['tinggiBadan'] || '-'} cm, Berat ${this.patientData['beratBadan'] || '-'} kg. Tolong sesuaikan analisis diagnosis berdasarkan data vital terbaru ini.`;
+        
+        await this.http.post(`${this.apiUrl}/chat`, {
+          session_id: this.sessionId, 
+          message: systemUpdateMsg, 
+          nakes_name: this.patientData['namaLengkap'] || 'Kak'
+        }).toPromise();
+
+        // 2. Generate ulang laporan dengan flag 'true' (Pertahankan Teks Resume Medis yang lama)
+        await this.generateReport(true);
+        
+      } catch (error) {
+        console.error('Gagal memperbarui AI setelah edit vital:', error);
+        alert('Terjadi kesalahan saat menghubungi server AI. Data vital tersimpan tapi prediksi mungkin belum terbaru.');
+      } finally {
+        this.isSending = false;
+      }
+    }
+  }
+
+  // ==========================================
+  // HELPER METHODS UNTUK UI
+  // ==========================================
   getFieldEntries(): [string, any][] {
     return this.fieldStatus?.required ? Object.entries(this.fieldStatus.required) : [];
   }

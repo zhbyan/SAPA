@@ -1,0 +1,53 @@
+<div class="animate-fadeIn space-y-6">
+  <div class="bg-gradient-to-r from-primary to-[#125c3d] rounded-2xl p-8 text-white shadow-lg relative overflow-hidden">
+    <div class="absolute top-0 right-0 w-64 h-64 bg-white opacity-5 rounded-full blur-3xl -translate-y-1/2 translate-x-1/4"></div>
+    <div class="relative z-10">
+      <p class="text-white/80 font-medium mb-1">{{ today }}</p>
+      <h1 class="text-3xl font-bold mb-2">Selamat Bertugas, {{ auth.user?.name || 'Suster' }}! 👋</h1>
+      <p class="text-white/90 max-w-xl text-sm leading-relaxed">Sistem Asistensi Pasien & Antrian (SAPA) siap membantu Anda hari ini. Silakan mulai pendaftaran atau pantau riwayat triage.</p>
+    </div>
+  </div>
+
+  <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-slate-500 font-semibold text-sm mb-1 uppercase tracking-wide">Menunggu Antrean Dokter</p>
+        <h2 class="text-4xl font-black text-slate-800">{{ waitingCount }} <span class="text-sm font-medium text-slate-400">Pasien</span></h2>
+      </div>
+    </div>
+
+    <div class="bg-white rounded-2xl p-6 border border-slate-200 shadow-sm flex items-center justify-between">
+      <div>
+        <p class="text-slate-500 font-semibold text-sm mb-1 uppercase tracking-wide">Selesai Diperiksa Hari Ini</p>
+        <h2 class="text-4xl font-black text-slate-800">{{ completedCount }} <span class="text-sm font-medium text-slate-400">Pasien</span></h2>
+      </div>
+    </div>
+  </div>
+
+  <div>
+    <h3 class="text-lg font-bold text-slate-800 mb-4">Akses Cepat</h3>
+    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+      
+      <a routerLink="/pendaftaran" class="group block bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:border-primary hover:shadow-md transition-all cursor-pointer">
+        <div class="flex items-center gap-4 mb-3">
+          <h4 class="font-bold text-slate-800 text-lg">Pendaftaran Pasien Baru</h4>
+        </div>
+        <p class="text-sm text-slate-500 mb-4">Mulai proses anamnesis, pencatatan tanda vital, dan prediksi triage AI untuk pasien baru.</p>
+        <div class="flex items-center text-primary font-semibold text-sm gap-1">
+          Mulai Pendaftaran <lucide-icon name="arrow-right" [size]="16" class="group-hover:translate-x-1 transition-transform"></lucide-icon>
+        </div>
+      </a>
+
+      <a routerLink="/riwayat" class="group block bg-white rounded-2xl p-6 border border-slate-200 shadow-sm hover:border-primary hover:shadow-md transition-all cursor-pointer">
+        <div class="flex items-center gap-4 mb-3">
+          <h4 class="font-bold text-slate-800 text-lg">Lihat Riwayat Pasien</h4>
+        </div>
+        <p class="text-sm text-slate-500 mb-4">Akses kembali daftar pasien yang sudah selesai diperiksa beserta hasil resume medis triage-nya.</p>
+        <div class="flex items-center text-blue-600 font-semibold text-sm gap-1">
+          Buka Riwayat <lucide-icon name="arrow-right" [size]="16" class="group-hover:translate-x-1 transition-transform"></lucide-icon>
+        </div>
+      </a>
+
+    </div>
+  </div>
+</div>

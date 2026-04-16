@@ -9,8 +9,11 @@ export const routes: Routes = [
     canActivate: [authGuard],
     data: { role: 'nakes' },
     children: [
-      { path: '', loadComponent: () => import('./pages/nakes/triage/triage.component').then(m => m.TriageComponent) },
-      // INI KUNCI UTAMANYA: Mengarahkan path "riwayat" ke file yang kita buat di Langkah 3
+      // Dasbor Nakes (Path Kosong / )
+      { path: '', loadComponent: () => import('./pages/nakes/dashboard-nakes/dashboard-nakes.component').then(m => m.DashboardNakesComponent) },
+      // Pendaftaran (Triage)
+      { path: 'pendaftaran', loadComponent: () => import('./pages/nakes/triage/triage.component').then(m => m.TriageComponent) },
+      // Riwayat Pasien
       { path: 'riwayat', loadComponent: () => import('./pages/nakes/riwayat/riwayat.component').then(m => m.RiwayatComponent) }
     ]
   },

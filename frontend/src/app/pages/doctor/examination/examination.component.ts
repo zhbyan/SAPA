@@ -145,6 +145,11 @@ export class ExaminationComponent implements OnInit {
 
   getActiveTab() { return this.tabs.find(t => t.id === this.activeTab)!; }
 
+  getSaveButtonLabel(): string {
+    const tab = this.getActiveTab();
+    return `Simpan ${tab.label}`;
+  }
+
   selectICD10(field: string, entry: any, searchField: string, showField: string) {
     this.assData[field] = formatICD10(entry);
     this.icdSearches[searchField] = '';

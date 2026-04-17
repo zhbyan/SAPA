@@ -8,9 +8,15 @@ import os
 import time
 from typing import Optional
 from groq import Groq
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # ═══ Configuration ═══════════════════════════════════
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY", "")
+GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
+if not GROQ_API_KEY:
+    GROQ_API_KEY = "" # Will fail gracefully if env is not set
+
 GROQ_MODEL = "llama-3.3-70b-versatile"
 
 # Required anamnesis fields

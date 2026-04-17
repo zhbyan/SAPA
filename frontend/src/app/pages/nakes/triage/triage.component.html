@@ -118,8 +118,10 @@
         </div>
         <div class="flex flex-wrap gap-2 mt-2">
           <span *ngFor="let entry of getFieldEntries()"
-            [class]="'text-[10px] px-2 py-0.5 rounded-full ' + (entry[1] ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400')">
-            <lucide-icon *ngIf="entry[1]" name="check" [size]="14" class="text-green-500"></lucide-icon><span *ngIf="!entry[1]" class="w-3.5 h-3.5 border border-slate-300 rounded"></span> {{ entry[0].replace('_', ' ') }}
+            [class]="'inline-flex items-center gap-1.5 text-[10px] px-2 py-0.5 rounded-full ' + (entry[1] ? 'bg-primary/10 text-primary' : 'bg-gray-100 text-gray-400')">
+            <lucide-icon *ngIf="entry[1]" name="check" [size]="12" class="text-green-500 flex-shrink-0"></lucide-icon>
+            <span *ngIf="!entry[1]" class="inline-flex w-3 h-3 border border-slate-300 rounded flex-shrink-0"></span>
+            <span>{{ entry[0].replace('_', ' ') }}</span>
           </span>
         </div>
         <div *ngIf="fieldStatus.percentage >= 100" class="mt-2 bg-primary/10 border border-primary/20 rounded-lg px-3 py-1.5 text-xs text-primary font-medium flex items-center gap-2">

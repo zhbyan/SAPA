@@ -24,7 +24,7 @@ TEST_PATH = os.path.join(DATA_DIR, "test.csv")
 FINAL_DATASET = os.path.join(DATA_DIR, "hybrid_dataset.csv")
 
 # Gemini API Key
-GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_API_KEY = "AIzaSyA1xeDvYANK-g5UvKnhg3TmIKtGxJWm9lQ"
 
 # Import translations from existing file
 from download_kaggle_dataset import SYMPTOM_TRANSLATION, DISEASE_TRANSLATION

@@ -1,23 +1,26 @@
 """
-SAPA LLM Engine — Phase 6: Gemini 2.5 Flash Lite with RASA Persona
-AI Chat Agent untuk pengumpulan data anamnesis pasien via percakapan.
+SAPA LLM Engine — Gemini 2.0 Flash with RASA Persona
+Menggunakan Gemini REST API via `requests` (tanpa google-generativeai SDK).
 """
 
 import json
 import os
 import time
+import requests
 from typing import Optional
-from groq import Groq
 from dotenv import load_dotenv
 
 load_dotenv()
 
 # ═══ Configuration ═══════════════════════════════════
-GROQ_API_KEY = os.environ.get("GROQ_API_KEY")
-if not GROQ_API_KEY:
-    GROQ_API_KEY = "" # Will fail gracefully if env is not set
+GEMINI_API_KEY = os.environ.get("GEMINI_API_KEY", "")
+GEMINI_MODEL   = "gemini-1.5-flash"
 
-GROQ_MODEL = "llama-3.3-70b-versatile"
+def _gemini_url() -> str:
+    return (
+        f"https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{GEMINI_MODEL}:generateContent?key={GEMINI_API_KEY}"
+    )
 
 # Required anamnesis fields
 REQUIRED_FIELDS = [
@@ -67,11 +70,11 @@ Kumpulkan data berikut melalui percakapan NATURAL (JANGAN tanya sekaligus!):
 
 ## ATURAN PERCAKAPAN
 1. Mulai dengan SATU pertanyaan: keluhan utama
-2. Tanyakan field berikutnya SATU PER SATU berdasarkan konteks (jangan bombardir pertanyaan)
-3. Jika nakes sudah menyebutkan beberapa info sekaligus, JANGAN tanya ulang yang sudah disebutkan — langsung lanjut ke field yang belum
+2. Tanyakan field berikutnya SATU PER SATU berdasarkan konteks
+3. Jika nakes sudah menyebutkan beberapa info sekaligus, JANGAN tanya ulang — langsung lanjut ke field yang belum
 4. Setelah setiap jawaban, konfirmasi singkat + lanjut pertanyaan berikutnya
 5. Jika jawaban ambigu, minta klarifikasi dengan sopan
-6. Jika nakes bilang "tidak tahu" untuk field wajib, catat sebagai "Tidak diketahui" dan lanjut (jangan memaksa)
+6. Jika nakes bilang "tidak tahu" untuk field wajib, catat "Tidak diketahui" dan lanjut
 
 ## ATURAN ANALISIS
 - HANYA hasilkan analisis setelah SEMUA 7 FIELD WAJIB terkumpul
@@ -82,16 +85,15 @@ Kumpulkan data berikut melalui percakapan NATURAL (JANGAN tanya sekaligus!):
 - JANGAN pernah meresepkan obat
 - JANGAN pernah bilang "Anda pasti menderita X"
 - Selalu gunakan frasa: "kemungkinan", "perlu diperiksa lebih lanjut"
-- Jika keluhan darurat (nyeri dada kiri, sesak berat, pendarahan hebat), LANGSUNG sarankan: "Kak, ini PERLU PENANGANAN SEGERA. Mohon segera rujuk ke IGD."
+- Jika keluhan darurat (nyeri dada kiri, sesak berat, pendarahan hebat), LANGSUNG sarankan rujuk IGD
 - Tolak pertanyaan di luar konteks medis dengan sopan
 
 ## FORMAT RESPONS (SANGAT PENTING!)
-Kamu HARUS SELALU merespons HANYA dengan JSON valid. 
-Jangan tambahkan format markdown ````json` pada awal atau akhir, JANGAN MENAMBAH TEKS APAPUN SEBELUM/SESUDAH JSON.
-Hasilkan JSON murni seperti contoh berikut:
+Kamu HARUS SELALU merespons HANYA dengan JSON valid.
+JANGAN tambahkan markdown ```json. Hasilkan JSON murni:
 
 {
-    "reply": "Baik Kak, sudah saya catat keluhannya. Sejak kapan pasien merasakannya?",
+    "reply": "Baik Kak, sudah saya catat. Sejak kapan pasien merasakannya?",
     "field_updates": {
         "keluhan_utama": "Sakit perut"
     },
@@ -101,7 +103,7 @@ Hasilkan JSON murni seperti contoh berikut:
 
 Jika semua field sudah lengkap DAN nakes meminta analisis:
 {
-    "reply": "📋 RESUME MEDIS\\nPasien mengeluh sakit perut sejak 3 hari lalu...",
+    "reply": "📋 RESUME MEDIS...",
     "field_updates": {},
     "is_complete": true,
     "analysis": {
@@ -116,28 +118,71 @@ Jika semua field sudah lengkap DAN nakes meminta analisis:
 """
 
 
+def _call_gemini(history: list[dict], temperature: float = 0.2) -> str:
+    """
+    Call Gemini REST API. Retries up to 3x on 503 (overloaded) with backoff.
+    """
+    payload = {
+        "system_instruction": {
+            "parts": [{"text": RASA_SYSTEM_PROMPT}]
+        },
+        "contents": history,
+        "generationConfig": {
+            "temperature": temperature,
+            "responseMimeType": "application/json",
+        },
+    }
+
+    max_retries = 3
+    for attempt in range(max_retries):
+        resp = requests.post(
+            _gemini_url(),
+            json=payload,
+            headers={"Content-Type": "application/json"},
+            timeout=30,
+        )
+
+        if resp.status_code == 200:
+            data = resp.json()
+            return data["candidates"][0]["content"]["parts"][0]["text"]
+
+        if resp.status_code == 503 and attempt < max_retries - 1:
+            wait = 2 ** attempt  # 1s, 2s
+            print(f"⚠️  Gemini 503 overloaded, retry {attempt + 1}/{max_retries - 1} in {wait}s...")
+            time.sleep(wait)
+            continue
+
+        raise RuntimeError(f"Gemini API error {resp.status_code}: {resp.text[:300]}")
+
+    raise RuntimeError("Gemini API failed after max retries")
+
+
 class RASAEngine:
     """
-    RASA (Rekan Asistensi SAPA) - Groq-powered clinical assistant.
+    RASA (Rekan Asistensi SAPA) - Gemini REST-powered clinical assistant.
     Manages chat sessions and field collection for patient anamnesis.
     """
 
     def __init__(self):
-        self.client = Groq(api_key=GROQ_API_KEY)
-        self.sessions = {}  # session_id -> {llm_history, fields, history}
-        print(f"✅ RASA Engine initialized (model: {GROQ_MODEL})")
+        if not GEMINI_API_KEY:
+            print("⚠️  GEMINI_API_KEY not set in .env!")
+        print(f"✅ RASA Engine initialized (model: {GEMINI_MODEL})")
+        self.sessions: dict = {}
 
     def create_session(self, session_id: str, nakes_name: str = "Kak") -> dict:
         """Create a new chat session."""
-        welcome = f"Halo, {nakes_name}! 👋 Saya RASA, asisten klinis SAPA.\n\nSilakan ceritakan keluhan utama pasien yang akan diperiksa ya."
-        
+        welcome = (
+            f"Halo, {nakes_name}! 👋 Saya RASA, asisten klinis SAPA.\n\n"
+            "Silakan ceritakan keluhan utama pasien yang akan diperiksa ya."
+        )
+
         self.sessions[session_id] = {
             "nakes_name": nakes_name,
             "fields": {f: None for f in REQUIRED_FIELDS},
             "optional_fields": {f: None for f in OPTIONAL_FIELDS},
-            "llm_history": [
-                {"role": "system", "content": RASA_SYSTEM_PROMPT},
-                {"role": "assistant", "content": welcome}
+            # Gemini REST history format
+            "gemini_history": [
+                {"role": "model", "parts": [{"text": welcome}]},
             ],
             "history": [
                 {"role": "ai", "text": welcome, "timestamp": time.time()}
@@ -166,7 +211,7 @@ class RASAEngine:
         })
 
         try:
-            # Build context about collected fields — aggressive enforcement
+            # Build field context
             filled_fields = []
             missing_fields = []
             for field, value in session["fields"].items():
@@ -174,38 +219,45 @@ class RASAEngine:
                     filled_fields.append(f"- {field}: ✅ {value}")
                 else:
                     missing_fields.append(field)
-            
-            field_context = f"\n\n[SISTEM] STATUS FIELD SAAT INI:\n"
-            field_context += "\n".join(filled_fields) if filled_fields else ""
+
+            field_context = "\n\n[SISTEM] STATUS FIELD SAAT INI:\n"
+            field_context += "\n".join(filled_fields) if filled_fields else "(belum ada)"
             field_context += "\n"
-            
+
             if missing_fields:
-                field_context += f"\n⚠️ FIELD YANG BELUM TERISI ({len(missing_fields)} tersisa): {', '.join(missing_fields)}\n"
-                field_context += f"INSTRUKSI KERAS: Kamu HARUS bertanya tentang '{missing_fields[0]}' di respons berikutnya. "
-                field_context += f"JANGAN membahas topik lain sampai field ini terisi. "
-                field_context += f"Jika nakes sudah menjawab field ini di pesan sekarang, update field_updates lalu tanyakan field berikutnya: {missing_fields[1] if len(missing_fields) > 1 else 'SELESAI'}."
+                field_context += (
+                    f"\n⚠️ FIELD BELUM TERISI ({len(missing_fields)} tersisa): "
+                    f"{', '.join(missing_fields)}\n"
+                    f"INSTRUKSI KERAS: Tanyakan '{missing_fields[0]}' di respons berikutnya. "
+                    f"Jika nakes sudah menjawabnya di pesan ini, update field_updates "
+                    f"lalu tanyakan: "
+                    f"{missing_fields[1] if len(missing_fields) > 1 else 'SELESAI'}."
+                )
             else:
-                field_context += "\n✅ SEMUA 7 FIELD WAJIB SUDAH TERISI! Sampaikan ke nakes bahwa data sudah lengkap dan mereka bisa klik tombol 'Buat Laporan'."
-            
-            field_context += "\nPastikan respond Anda HANYA berupa JSON tanpa penjelasan tambahan."
+                field_context += (
+                    "\n✅ SEMUA 7 FIELD WAJIB TERISI! "
+                    "Informasikan ke nakes bahwa data lengkap dan bisa klik 'Buat Laporan'."
+                )
+            field_context += "\nRespond HANYA dengan JSON murni."
 
-            # Send to Groq
             full_message = message + field_context
-            session["llm_history"].append({"role": "user", "content": full_message})
 
-            completion = self.client.chat.completions.create(
-                model=GROQ_MODEL,
-                messages=session["llm_history"],
-                temperature=0.2, # Lower temperature for stricter JSON format
-                response_format={"type": "json_object"} # Force JSON mode on Groq
-            )
-            
-            response_text = completion.choices[0].message.content.strip()
+            # Append user turn to Gemini history
+            session["gemini_history"].append({
+                "role": "user",
+                "parts": [{"text": full_message}],
+            })
 
-            # Add raw response to LLM history so it remembers what it said
-            session["llm_history"].append({"role": "assistant", "content": response_text})
+            # Call Gemini REST API
+            response_text = _call_gemini(session["gemini_history"])
 
-            # Parse JSON response
+            # Append model reply to history
+            session["gemini_history"].append({
+                "role": "model",
+                "parts": [{"text": response_text}],
+            })
+
+            # Parse JSON
             parsed = self._parse_response(response_text)
 
             # Update fields
@@ -222,7 +274,6 @@ class RASAEngine:
 
             reply = parsed.get("reply", "Maaf, format respons salah. Silakan ulangi.")
 
-            # Add AI response to UI history
             session["history"].append({
                 "role": "ai",
                 "text": reply,
@@ -237,12 +288,11 @@ class RASAEngine:
             }
 
         except Exception as e:
-            error_msg = f"Maaf Kak, ada gangguan sementara 🙏 Bisa diulang ya.\n(Error: {str(e)[:100]})"
-            
-            # Remove the last user message from llm_history if it caused an error
-            if session["llm_history"][-1]["role"] == "user":
-                session["llm_history"].pop()
-                
+            # Roll back the user message from gemini_history on error
+            if session["gemini_history"] and session["gemini_history"][-1]["role"] == "user":
+                session["gemini_history"].pop()
+
+            error_msg = f"Maaf Kak, ada gangguan sementara 🙏 Bisa diulang ya.\n(Error: {str(e)[:150]})"
             return {
                 "reply": error_msg,
                 "field_status": self._get_field_status(session_id),
@@ -257,18 +307,18 @@ class RASAEngine:
 
         session = self.sessions[session_id]
 
-        # Auto-fill empty required fields with fallback value
+        # Auto-fill empty required fields
         for field, value in session["fields"].items():
             if value is None:
                 session["fields"][field] = "Tidak diketahui"
-
         session["is_complete"] = True
 
-        # Ask RASA to generate analysis
-        prompt = "Kak, tolong buatkan analisis lengkap berdasarkan semua data yang sudah terkumpul. Berikan resume medis, diagnosis awal (top-3 dengan ICD-10 dan reasoning), dan saran pemeriksaan lanjutan."
-
-        result = self.send_message(session_id, prompt)
-        return result
+        prompt = (
+            "Kak, tolong buatkan analisis lengkap berdasarkan semua data yang sudah terkumpul. "
+            "Berikan resume medis, diagnosis awal (top-3 dengan ICD-10 dan reasoning), "
+            "dan saran pemeriksaan lanjutan."
+        )
+        return self.send_message(session_id, prompt)
 
     def get_session(self, session_id: str) -> Optional[dict]:
         """Get session data."""
@@ -283,53 +333,45 @@ class RASAEngine:
         }
 
     def _get_field_status(self, session_id: str) -> dict:
-        """Get current status of all fields."""
         session = self.sessions[session_id]
-        total = len(REQUIRED_FIELDS)
+        total  = len(REQUIRED_FIELDS)
         filled = sum(1 for v in session["fields"].values() if v is not None)
         return {
-            "required": session["fields"],
-            "optional": session["optional_fields"],
-            "progress": f"{filled}/{total}",
+            "required":   session["fields"],
+            "optional":   session["optional_fields"],
+            "progress":   f"{filled}/{total}",
             "percentage": int(filled / total * 100),
         }
 
     @staticmethod
     def _parse_response(text: str) -> dict:
-        """Parse JSON response from LLM. Falls back to generating a blank one."""
-        # Try direct JSON parse
+        """Parse JSON response. Falls back gracefully."""
         try:
             return json.loads(text)
         except json.JSONDecodeError:
             pass
 
-        # Try to extract JSON from markdown code block
         import re
-        json_match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', text, re.DOTALL)
-        if json_match:
+        match = re.search(r'```(?:json)?\s*\n?(.*?)\n?```', text, re.DOTALL)
+        if match:
             try:
-                return json.loads(json_match.group(1))
+                return json.loads(match.group(1))
             except json.JSONDecodeError:
                 pass
 
-        # Parse failed, fallback
         return {"reply": text, "field_updates": {}, "is_complete": False}
 
 
 # ═══ Standalone test ═════════════════════════════════
 if __name__ == "__main__":
     print("=" * 60)
-    print("RASA Engine Test")
+    print("RASA Engine Test — Gemini 2.0 Flash (REST API)")
     print("=" * 60)
 
     engine = RASAEngine()
-
-    # Create session
     result = engine.create_session("test-001", "Alex")
     print(f"\n🤖 RASA: {result['reply']}")
-    print(f"   Fields: {result['field_status']['progress']}")
 
-    # Simulate conversation
     messages = [
         "Mual ada, muntah 2x isi makanan. Konstipasi belum BAB 2 hari.",
         "Sejak kemarin sore",
@@ -344,11 +386,7 @@ if __name__ == "__main__":
         result = engine.send_message("test-001", msg)
         print(f"🤖 RASA: {result['reply'][:200]}...")
         print(f"   Fields: {result['field_status']['progress']}")
-
-        if result.get('is_complete'):
-            print("\n✅ All fields collected! Generating report...")
-            report = engine.generate_report("test-001")
-            print(f"📋 Report: {report.get('reply', '')[:300]}...")
+        if result.get("is_complete"):
+            print("\n✅ Semua field terkumpul!")
             break
-
-        time.sleep(1)  # Rate limiting
+        time.sleep(0.3)
